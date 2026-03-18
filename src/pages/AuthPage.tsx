@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
-import { Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AuthPage() {
@@ -38,9 +37,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
-            <Wallet size={32} />
-          </div>
+          <img src="/logo.jpg" alt="Family Finance Logo" className="w-24 h-24 md:w-28 md:h-28 rounded-full shadow-md mb-4 object-cover" />
           <h1 className="text-2xl font-bold text-slate-800 text-center">
             Quản Lý Thu Chi Gia Đình
           </h1>

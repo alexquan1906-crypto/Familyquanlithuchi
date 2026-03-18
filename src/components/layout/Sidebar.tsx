@@ -13,8 +13,9 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-full">
       <div className="p-6">
-        <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <span className="text-2xl">🏠</span> Family Finance
+        <h1 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+          <img src="/logo.jpg" alt="Logo" className="w-10 h-10 rounded-full shadow-sm" />
+          Family Finance
         </h1>
       </div>
       
