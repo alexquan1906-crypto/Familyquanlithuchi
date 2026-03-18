@@ -6,7 +6,7 @@ import IncomeForm from '../components/income/IncomeForm';
 import IncomeList from '../components/income/IncomeList';
 import ExpenseForm from '../components/expense/ExpenseForm';
 import ExpenseList from '../components/expense/ExpenseList';
-import { Income, Expense, ExpenseCategory } from '../types';
+import { Income, Expense } from '../types';
 
 export default function FinancePage() {
   const [searchParams, setSearchParams] = useSearchParams();

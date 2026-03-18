@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStats } from '../hooks/useStats';
-import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getExpenseCategoryInfo } from '../components/expense/ExpenseForm';
 
@@ -107,14 +107,14 @@ export default function StatsPage() {
                         paddingAngle={2}
                         dataKey="value"
                         nameKey="label"
-                        label={({ label, percent }) => `${label} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                         labelLine={false}
                       >
-                        {formattedPieData.map((entry, index) => (
+                        {formattedPieData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                      <Tooltip formatter={(value: any) => formatCurrency(Number(value))} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -130,7 +130,7 @@ export default function StatsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={overallData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{ fill: '#f1f5f9' }} formatter={(value: number) => formatCurrency(value)} />
+                    <Tooltip cursor={{ fill: '#f1f5f9' }} formatter={(value: any) => formatCurrency(Number(value))} />
                     <Bar dataKey="value" radius={[8, 8, 8, 8]} maxBarSize={60}>
                       {overallData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -149,7 +149,7 @@ export default function StatsPage() {
                   <BarChart layout="vertical" data={personData} margin={{ top: 0, right: 50, left: 50, bottom: 0 }}>
                     <XAxis type="number" hide />
                     <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} width={80} style={{ fontWeight: 'bold' }} />
-                    <Tooltip cursor={{ fill: '#f1f5f9' }} formatter={(value: number) => formatCurrency(value)} />
+                    <Tooltip cursor={{ fill: '#f1f5f9' }} formatter={(value: any) => formatCurrency(Number(value))} />
                     <Bar dataKey="value" radius={[0, 8, 8, 0]} maxBarSize={40}>
                       {personData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
