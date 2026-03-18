@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-192x192.svg', 'pwa-512x512.svg'],
+      includeAssets: ['logo.jpg'],
       manifest: {
         name: 'Family Finance Manager',
         short_name: 'Thu Chi',
@@ -21,16 +21,16 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: 'pwa-192x192.svg',
+            src: 'logo.jpg',
             sizes: '192x192',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
+            type: 'image/jpeg',
+            purpose: 'any'
           },
           {
-            src: 'pwa-512x512.svg',
+            src: 'logo.jpg',
             sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
+            type: 'image/jpeg',
+            purpose: 'any'
           }
         ]
       }
