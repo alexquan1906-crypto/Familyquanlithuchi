@@ -38,5 +38,8 @@ export default defineConfig({
   ],
   css: {
     postcss: {}
+  },
+  build: {
+    chunkSizeWarningLimit: 3000
   }
 })
