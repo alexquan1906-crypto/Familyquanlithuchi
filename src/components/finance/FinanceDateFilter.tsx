@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Filter, Calendar, X } from 'lucide-react';
+import { Lunar, Solar } from 'lunar-javascript';
 import { FilterPeriodMode, getDateRangeForPeriod } from '../../lib/dateUtils';
 
 interface FinanceDateFilterProps {
@@ -7,18 +8,19 @@ interface FinanceDateFilterProps {
 }
 
 const PREDEFINED = [
-  { id: 'this_solar_month', label: 'Tháng Dương này' },
   { id: 'this_lunar_month', label: 'Tháng Âm này' },
+  { id: 'this_solar_month', label: 'Tháng Dương này' },
   { id: 'this_week', label: 'Tuần này' },
-  { id: 'this_quarter', label: 'Quý này (3 tháng)' },
-  { id: 'this_half_year', label: 'Nửa năm nay (6 tháng)' },
-  { id: 'this_year', label: 'Cả năm nay' },
+  { id: 'this_quarter', label: 'Quý này' },
+  { id: 'this_half_year', label: 'Nửa năm' },
+  { id: 'this_year', label: 'Cả năm' },
 ];
 
 export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const [activeFilterId, setActiveFilterId] = useState<FilterPeriodMode>('this_solar_month');
+  const [activeFilterId, setActiveFilterId] = useState<FilterPeriodMode>('this_lunar_month');
+  const [currentRange, setCurrentRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
 
   const currentYear = new Date().getFullYear();
   const [specificMonth, setSpecificMonth] = useState(new Date().getMonth() + 1);
@@ -30,7 +32,8 @@ export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilte
   // Bắn dữ liệu mặc định lần đầu tiên Component Mount
   useEffect(() => {
     // Prevent strictly executing if already fired or if they just didn't want it, but actually we WANT it
-    const { start, end } = getDateRangeForPeriod('this_solar_month', currentYear, specificMonth);
+    const { start, end } = getDateRangeForPeriod('this_lunar_month', currentYear, specificMonth);
+    setCurrentRange({ start, end });
     onFilterComplete(start, end);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -46,26 +49,48 @@ export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilte
       startD.setHours(0, 0, 0, 0);
       const endD = new Date(customEnd);
       endD.setHours(23, 59, 59, 999);
+      setCurrentRange({ start: startD.toISOString(), end: endD.toISOString() });
       onFilterComplete(startD.toISOString(), endD.toISOString());
     } else {
       const { start, end } = getDateRangeForPeriod(mode, specificYear, specificMonth);
+      setCurrentRange({ start, end });
       onFilterComplete(start, end);
     }
+  };
+
+  const getFilterLabel = () => {
+    if (activeFilterId === 'custom') return `Tùy chọn khoảng ngày`;
+    if (activeFilterId === 'this_lunar_month') {
+        const todayLunar = Lunar.fromSolar(Solar.fromDate(new Date()));
+        return `Tháng Âm Này (Tháng ${Math.abs(todayLunar.getMonth())})`;
+    }
+    if (activeFilterId === 'specific_solar_month') {
+        return `Tháng ${specificMonth}/${specificYear} (Dương)`;
+    }
+    if (activeFilterId === 'specific_lunar_month') {
+        return `Tháng ${specificMonth}/${specificYear} (Âm)`;
+    }
+    return (PREDEFINED.find(p => p.id === activeFilterId) || { label: '' }).label;
   };
 
   // Click outside can close it or just keep it modal
   return (
     <div className="mb-4 relative">
       <div className="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-2 text-slate-700">
-          <Calendar size={18} className="text-blue-500" />
-          <span className="font-semibold text-sm">
-            {activeFilterId === 'custom'
-              ? `Từ ${new Date(customStart).toLocaleDateString()} - ${new Date(customEnd).toLocaleDateString()}`
-              : (PREDEFINED.find(p => p.id === activeFilterId) || { label: '' }).label ||
-              (activeFilterId === 'specific_solar_month' ? `Tháng ${specificMonth}/${specificYear} (Dương)` : `Tháng ${specificMonth}/${specificYear} (Âm)`)
-            }
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="bg-orange-100 p-2.5 rounded-xl">
+            <Calendar size={20} className="text-orange-600" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-[15px] text-slate-800 leading-tight">
+              {getFilterLabel()}
+            </span>
+            {currentRange.start && currentRange.end && (
+              <span className="text-[12px] font-semibold text-slate-500 mt-0.5">
+                {new Date(currentRange.start).toLocaleDateString('vi-VN')} - {new Date(currentRange.end).toLocaleDateString('vi-VN')} (Dương)
+              </span>
+            )}
+          </div>
         </div>
 
         <button

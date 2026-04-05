@@ -1,5 +1,6 @@
 import { Income } from '../../types';
 import { Pencil, Trash2, ArrowDownCircle } from 'lucide-react';
+import { getLunarDateMock as getLunarDate } from '../../lib/lunar';
 
 interface Props {
   incomes: Income[];
@@ -34,7 +35,11 @@ export default function IncomeList({ incomes, loading, onEdit, onDelete, filterP
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div className="divide-y divide-slate-100">
-        {filteredIncomes.map((inc) => (
+        {filteredIncomes.map((inc) => {
+          const dateObj = new Date(inc.date);
+          const lunarInfo = getLunarDate(dateObj);
+          
+          return (
           <div key={inc.id} className="p-4 md:p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4 flex-1">
               {/* Avatar Icon */}
@@ -46,9 +51,14 @@ export default function IncomeList({ incomes, loading, onEdit, onDelete, filterP
                   <p className="font-semibold text-slate-800 text-lg md:text-xl">
                     {inc.note || 'Không có ghi chú'}
                   </p>
-                  <p className="text-sm md:text-base text-slate-500">
-                    {new Date(inc.date).toLocaleDateString('vi-VN')}
-                  </p>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <span className="text-[13px] md:text-sm font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100 w-fit">
+                      🌙 {lunarInfo.day}/{lunarInfo.month} ÂL ({lunarInfo.canChi})
+                    </span>
+                    <span className="text-xs md:text-sm text-slate-500 font-medium pl-1">
+                      🌞 {dateObj.toLocaleDateString('vi-VN')}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -81,7 +91,7 @@ export default function IncomeList({ incomes, loading, onEdit, onDelete, filterP
               </div>
             </div>
           </div>
-        ))}
+        )})}
       </div>
     </div>
   );

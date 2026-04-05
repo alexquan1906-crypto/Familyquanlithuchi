@@ -1,7 +1,8 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ExpenseCategory } from '../../types';
+import LunarSolarDatePicker from '../finance/LunarSolarDatePicker';
 
 const expenseCategories: { id: ExpenseCategory; label: string; icon: string }[] = [
   { id: 'an_uong', label: 'Ăn uống', icon: '🍜' },
@@ -41,7 +42,7 @@ interface Props {
 }
 
 export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading }: Props) {
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ExpenseFormValues>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema) as any,
     defaultValues: initialData || {
       amount: 0,
@@ -114,12 +115,18 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
         {/* Ngày tháng */}
         <div>
           <label className="block text-slate-700 font-medium mb-2">Ngày Chi</label>
-          <input
-            type="date"
-            {...register('date')}
-            className="w-full min-h-[56px] text-lg px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:outline-none"
+          <Controller
+            name="date"
+            control={control}
+            render={({ field }) => (
+              <LunarSolarDatePicker
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.date?.message as string | undefined}
+                focusColor="red"
+              />
+            )}
           />
-          {errors.date && <p className="text-red-500 mt-1">{errors.date.message}</p>}
         </div>
 
         {/* Ghi chú */}

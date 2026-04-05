@@ -1,6 +1,7 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import LunarSolarDatePicker from '../finance/LunarSolarDatePicker';
 
 const incomeSchema = z.object({
   amount: z.coerce.number().min(1000, 'Số tiền phải lớn hơn 1000đ'),
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export default function IncomeForm({ onSubmit, initialData, onCancel, isLoading }: Props) {
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<IncomeFormValues>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<IncomeFormValues>({
     resolver: zodResolver(incomeSchema) as any,
     defaultValues: initialData || {
       amount: 0,
@@ -95,12 +96,18 @@ export default function IncomeForm({ onSubmit, initialData, onCancel, isLoading 
       {/* Ngày tháng */}
       <div>
         <label className="block text-slate-700 font-medium mb-2">Ngày Nhận</label>
-        <input
-          type="date"
-          {...register('date')}
-          className="w-full min-h-[56px] text-lg px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none"
+        <Controller
+          name="date"
+          control={control}
+          render={({ field }) => (
+            <LunarSolarDatePicker
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.date?.message as string | undefined}
+              focusColor="green"
+            />
+          )}
         />
-        {errors.date && <p className="text-red-500 mt-1">{errors.date.message}</p>}
       </div>
 
       {/* Ghi chú */}

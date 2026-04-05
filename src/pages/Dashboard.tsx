@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowDownCircle, ArrowUpCircle, Wallet, TrendingUp, PlusCircle, MinusCircle, X } from 'lucide-react';
 import SummaryCard from '../components/stats/SummaryCard';
 import { useDashboardStats } from '../hooks/useDashboardStats';
-import DashboardDateFilter from '../components/stats/DashboardDateFilter';
+import FinanceDateFilter from '../components/finance/FinanceDateFilter';
 import DailyBreakdown from '../components/stats/DailyBreakdown';
 import IncomeForm from '../components/income/IncomeForm';
 import ExpenseForm from '../components/expense/ExpenseForm';
@@ -72,7 +72,7 @@ export default function Dashboard() {
       </div>
 
       {/* Date Filter */}
-      <DashboardDateFilter onFilterChange={(start, end) => setDateRange({ start, end })} />
+      <FinanceDateFilter onFilterComplete={(start, end) => setDateRange({ start, end })} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">

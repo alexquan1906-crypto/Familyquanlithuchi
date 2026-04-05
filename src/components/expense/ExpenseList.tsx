@@ -1,6 +1,7 @@
 import { Expense } from '../../types';
 import { Pencil, Trash2 } from 'lucide-react';
 import { getExpenseCategoryInfo } from './ExpenseForm';
+import { getLunarDateMock as getLunarDate } from '../../lib/lunar';
 
 interface Props {
   expenses: Expense[];
@@ -37,6 +38,8 @@ export default function ExpenseList({ expenses, loading, onEdit, onDelete, filte
       <div className="divide-y divide-slate-100">
         {filteredExpenses.map((exp) => {
           const catInfo = getExpenseCategoryInfo(exp.category);
+          const dateObj = new Date(exp.date);
+          const lunarInfo = getLunarDate(dateObj);
           
           return (
             <div key={exp.id} className="p-4 md:p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
@@ -49,11 +52,18 @@ export default function ExpenseList({ expenses, loading, onEdit, onDelete, filte
                   <p className="font-semibold text-slate-800 text-base md:text-lg truncate">
                     {exp.note || catInfo.label}
                   </p>
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
-                    <span className="font-medium text-red-600/80 bg-red-50 px-2 py-0.5 rounded-md hidden sm:inline-block">
-                      {catInfo.label}
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex items-center gap-2">
+                        <span className="font-medium text-[11px] md:text-xs text-red-600/80 bg-red-50 px-2 py-0.5 rounded-md hidden sm:inline-block">
+                          {catInfo.label}
+                        </span>
+                        <span className="text-[13px] md:text-sm font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+                          🌙 {lunarInfo.day}/{lunarInfo.month} ÂL ({lunarInfo.canChi})
+                        </span>
+                    </div>
+                    <span className="text-xs md:text-sm font-medium text-slate-500 pl-1">
+                        🌞 {dateObj.toLocaleDateString('vi-VN')}
                     </span>
-                    <span>{new Date(exp.date).toLocaleDateString('vi-VN')}</span>
                   </div>
                 </div>
               </div>
