@@ -6,11 +6,14 @@ import IncomeForm from '../components/income/IncomeForm';
 import IncomeList from '../components/income/IncomeList';
 import ExpenseForm from '../components/expense/ExpenseForm';
 import ExpenseList from '../components/expense/ExpenseList';
+import FinanceDateFilter from '../components/finance/FinanceDateFilter';
 import { Income, Expense } from '../types';
 
 export default function FinancePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') || 'income'; // 'income' | 'expense'
+  
+  const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
   
   const { incomes, loading: loadingIncome, fetchIncomes, addIncome, updateIncome, deleteIncome } = useIncome();
   const { expenses, loading: loadingExpense, fetchExpenses, addExpense, updateExpense, deleteExpense } = useExpense();
@@ -24,15 +27,18 @@ export default function FinancePage() {
 
   useEffect(() => {
     if (currentTab === 'income') {
-      fetchIncomes();
+      fetchIncomes(dateRange.start, dateRange.end);
     } else {
-      fetchExpenses();
+      fetchExpenses(dateRange.start, dateRange.end);
     }
+  }, [currentTab, fetchIncomes, fetchExpenses, dateRange.start, dateRange.end]);
+
+  useEffect(() => {
     // Switch tab -> hide form
     setIsFormVisible(false);
     setEditingIncome(null);
     setEditingExpense(null);
-  }, [currentTab, fetchIncomes, fetchExpenses]);
+  }, [currentTab]);
 
   const handleIncomeSubmit = async (data: any) => {
     if (editingIncome) {
@@ -83,6 +89,9 @@ export default function FinancePage() {
   return (
     <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
       
+      {/* Global Date Filter for Finance Page */}
+      <FinanceDateFilter onFilterComplete={(start, end) => setDateRange({start, end})} />
+
       {/* Tabs */}
       <div className="flex bg-slate-200/50 p-1 rounded-2xl w-full">
         <button

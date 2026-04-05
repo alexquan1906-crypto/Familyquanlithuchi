@@ -22,7 +22,7 @@ function App() {
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/chat" element={<AIChatPage />} />
+            <Route path="/ai-chat" element={<AIChatPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Route>

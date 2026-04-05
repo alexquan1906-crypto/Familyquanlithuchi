@@ -7,15 +7,13 @@ export function useIncome() {
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchIncomes = useCallback(async (month?: number, year?: number) => {
+  const fetchIncomes = useCallback(async (startDate?: string, endDate?: string) => {
     setLoading(true);
     try {
       let query = supabase.from('income').select('*').order('date', { ascending: false });
       
-      if (month !== undefined && year !== undefined) {
-        const startOfMonth = new Date(year, month - 1, 1).toISOString();
-        const endOfMonth = new Date(year, month, 0, 23, 59, 59).toISOString();
-        query = query.gte('date', startOfMonth).lte('date', endOfMonth);
+      if (startDate && endDate) {
+        query = query.gte('date', startDate).lte('date', endDate);
       }
 
       const { data, error } = await query;

@@ -7,8 +7,8 @@ const pageTitles: Record<string, string> = {
   '/finance': 'Thu Chi',
   '/stats': 'Thống Kê',
   '/calendar': 'Lịch',
-  '/tasks': 'Nhiệm Vụ',
-  '/chat': 'Trợ Lý AI',
+  '/tasks': 'Lịch Âm Dương',
+  '/ai-chat': 'Trợ Lý AI',
 };
 
 export default function Header() {
@@ -29,7 +29,7 @@ export default function Header() {
         </p>
       </div>
 
-      <button 
+      <button
         onClick={signOut}
         className="shrink-0 ml-3 p-2.5 bg-red-50 text-red-500 rounded-xl border border-red-100 hover:bg-red-100 active:bg-red-200 transition-colors"
         title="Đăng Xuất"

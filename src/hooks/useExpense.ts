@@ -7,15 +7,13 @@ export function useExpense() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchExpenses = useCallback(async (month?: number, year?: number) => {
+  const fetchExpenses = useCallback(async (startDate?: string, endDate?: string) => {
     setLoading(true);
     try {
       let query = supabase.from('expense').select('*').order('date', { ascending: false });
       
-      if (month !== undefined && year !== undefined) {
-        const startOfMonth = new Date(year, month - 1, 1).toISOString();
-        const endOfMonth = new Date(year, month, 0, 23, 59, 59).toISOString();
-        query = query.gte('date', startOfMonth).lte('date', endOfMonth);
+      if (startDate && endDate) {
+        query = query.gte('date', startDate).lte('date', endDate);
       }
 
       const { data, error } = await query;

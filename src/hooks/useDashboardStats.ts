@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
-export function useDashboardStats() {
+export function useDashboardStats(initialStartDate?: string, initialEndDate?: string) {
   const [loading, setLoading] = useState(true);
   
   const [totalIncome, setTotalIncome] = useState(0);
@@ -10,27 +10,29 @@ export function useDashboardStats() {
   const [incomeTrend, setIncomeTrend] = useState({ value: 0, isPositive: true });
   const [expenseTrend, setExpenseTrend] = useState({ value: 0, isPositive: true });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [rawTransactions, setRawTransactions] = useState<any[]>([]);
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = useCallback(async (startDate?: string, endDate?: string) => {
     try {
       setLoading(true);
       const now = new Date();
       
-      // Current month bounds
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+      // Default to Current month bounds if not provided
+      const finalStart = startDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const finalEnd = endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
       
-      // Previous month bounds
-      const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-      const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
+      // Previous bounds for trend (only makes perfect sense if it's default month, but we'll try to estimate for custom ranges too, or just skip trend if custom)
+      const rangeMs = new Date(finalEnd).getTime() - new Date(finalStart).getTime();
+      const prevStart = new Date(new Date(finalStart).getTime() - rangeMs).toISOString();
+      const prevEnd = new Date(new Date(finalStart).getTime() - 1).toISOString();
 
       // Fetch Income
-      const { data: currentIncomes } = await supabase.from('income').select('amount, date, note, person, id').gte('date', startOfMonth).lte('date', endOfMonth);
-      const { data: prevIncomes } = await supabase.from('income').select('amount').gte('date', startOfPrevMonth).lte('date', endOfPrevMonth);
+      const { data: currentIncomes } = await supabase.from('income').select('amount, date, note, person, id').gte('date', finalStart).lte('date', finalEnd);
+      const { data: prevIncomes } = await supabase.from('income').select('amount').gte('date', prevStart).lte('date', prevEnd);
       
       // Fetch Expense
-      const { data: currentExpenses } = await supabase.from('expense').select('amount, date, note, category, id').gte('date', startOfMonth).lte('date', endOfMonth);
-      const { data: prevExpenses } = await supabase.from('expense').select('amount').gte('date', startOfPrevMonth).lte('date', endOfPrevMonth);
+      const { data: currentExpenses } = await supabase.from('expense').select('amount, date, note, category, id').gte('date', finalStart).lte('date', finalEnd);
+      const { data: prevExpenses } = await supabase.from('expense').select('amount').gte('date', prevStart).lte('date', prevEnd);
 
       const currIncTotal = (currentIncomes || []).reduce((sum, item) => sum + item.amount, 0);
       const prevIncTotal = (prevIncomes || []).reduce((sum, item) => sum + item.amount, 0);
@@ -54,10 +56,10 @@ export function useDashboardStats() {
       const mappedExpenses = (currentExpenses || []).map(e => ({ ...e, type: 'expense' as const }));
       
       const combined = [...mappedIncomes, ...mappedExpenses]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5);
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         
-      setRecentTransactions(combined);
+      setRawTransactions(combined);
+      setRecentTransactions(combined.slice(0, 5));
 
     } catch (error) {
       console.error('Lỗi khi fetch dashboard stats:', error);
@@ -67,8 +69,8 @@ export function useDashboardStats() {
   }, []);
 
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    fetchStats(initialStartDate, initialEndDate);
+  }, [fetchStats, initialStartDate, initialEndDate]);
 
   return {
     totalIncome,
@@ -77,6 +79,8 @@ export function useDashboardStats() {
     incomeTrend,
     expenseTrend,
     recentTransactions,
-    loading
+    rawTransactions,
+    loading,
+    fetchStats
   };
 }

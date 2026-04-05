@@ -1,25 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useStats } from '../hooks/useStats';
-import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { getExpenseCategoryInfo } from '../components/expense/ExpenseForm';
+import FinanceDateFilter from '../components/finance/FinanceDateFilter';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
 
 export default function StatsPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  
-  const month = currentDate.getMonth() + 1;
-  const year = currentDate.getFullYear();
+  const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
 
-  const { loading, fetchMonthData, totalIncome, totalExpense, incomeByPerson, pieChartData } = useStats();
+  const { loading, fetchStatsData, fetchTrendData, trendData, totalIncome, totalExpense, incomeByPerson, pieChartData } = useStats();
 
   useEffect(() => {
-    fetchMonthData(month, year);
-  }, [month, year, fetchMonthData]);
-
-  const handlePrevMonth = () => setCurrentDate(new Date(year, month - 2, 1));
-  const handleNextMonth = () => setCurrentDate(new Date(year, month, 1));
+    fetchStatsData(dateRange.start, dateRange.end);
+    fetchTrendData(dateRange.end);
+  }, [dateRange.start, dateRange.end, fetchStatsData, fetchTrendData]);
 
   const formatCurrency = (value: number) => value.toLocaleString('vi-VN') + ' đ';
 
@@ -29,12 +24,6 @@ export default function StatsPage() {
     label: getExpenseCategoryInfo(d.name).label
   }));
 
-  // Format data for Income vs Expense
-  const overallData = [
-    { name: 'Thu Nhập', value: totalIncome, fill: '#16a34a' },
-    { name: 'Chi Tiêu', value: totalExpense, fill: '#dc2626' }
-  ];
-
   // Format data for Bo vs Me
   const personData = [
     { name: '👨 Bố', value: incomeByPerson.bo, fill: '#3b82f6' },
@@ -43,23 +32,9 @@ export default function StatsPage() {
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-6">
-      
-      {/* Header & Date Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 md:p-5 rounded-2xl border border-slate-200">
-        <h2 className="text-lg font-bold text-slate-800">📊 Thống Kê</h2>
-        
-        <div className="flex items-center justify-between w-full md:w-auto gap-4 bg-slate-50 p-2 rounded-xl border border-slate-200">
-          <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
-            <ChevronLeft size={24} className="text-slate-600" />
-          </button>
-          <span className="font-bold text-lg w-32 text-center text-slate-700">
-            Tháng {month}/{year}
-          </span>
-          <button onClick={handleNextMonth} className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
-            <ChevronRight size={24} className="text-slate-600" />
-          </button>
-        </div>
-      </div>
+
+      {/* Date Filter */}
+      <FinanceDateFilter onFilterComplete={(start, end) => setDateRange({ start, end })} />
 
       {loading ? (
         <div className="animate-pulse space-y-6">
@@ -82,7 +57,7 @@ export default function StatsPage() {
               <span className="text-lg md:text-2xl font-bold text-red-600">-{formatCurrency(totalExpense)}</span>
             </div>
             <div className={`${totalIncome - totalExpense >= 0 ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'} p-3 rounded-2xl border flex flex-col justify-center`}>
-              <span className={`${totalIncome - totalExpense >= 0 ? 'text-blue-700' : 'text-orange-700'} font-semibold text-xs mb-1`}>Còn Lại (Số Dư)</span>
+              <span className={`${totalIncome - totalExpense >= 0 ? 'text-blue-700' : 'text-orange-700'} font-semibold text-xs mb-1`}>Còn Lại (Lợi nhuận)</span>
               <span className={`text-lg md:text-2xl font-bold ${totalIncome - totalExpense >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
                 {formatCurrency(totalIncome - totalExpense)}
               </span>
@@ -90,52 +65,51 @@ export default function StatsPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            
+
             {/* Pie Chart Chi Tiêu */}
             <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200">
               <h3 className="text-lg font-bold text-slate-800 mb-6 text-center">Cơ Cấu Chi Tiêu</h3>
               {formattedPieData.length > 0 ? (
-                <div className="h-72 w-full">
+                <div className="h-[350px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
+                    <PieChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                       <Pie
                         data={formattedPieData}
                         cx="50%"
-                        cy="50%"
+                        cy="45%"
                         innerRadius={60}
                         outerRadius={90}
-                        paddingAngle={2}
+                        paddingAngle={3}
                         dataKey="value"
                         nameKey="label"
-                        label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                        labelLine={false}
+                        labelLine={true}
+                        label={({ percent }: any) => `${((percent || 0) * 100).toFixed(0)}%`}
                       >
                         {formattedPieData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value: any) => formatCurrency(Number(value))} />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '13px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-72 flex items-center justify-center text-slate-400">Không có dữ liệu chi tiêu</div>
+                <div className="h-[350px] flex items-center justify-center text-slate-400">Không có dữ liệu chi tiêu</div>
               )}
             </div>
 
-            {/* Income vs Expense Bar Chart */}
+            {/* Income vs Expense Trend Bar Chart */}
             <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200">
-              <h3 className="text-lg font-bold text-slate-800 mb-6 text-center">Tổng Quan Thu Chi</h3>
-              <div className="h-72 w-full">
+              <h3 className="text-lg font-bold text-slate-800 mb-6 text-center">Xu Hướng 1 Năm Gần Đây</h3>
+              <div className="h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={overallData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <BarChart data={trendData} margin={{ top: 20, right: 10, left: 10, bottom: 5 }}>
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} dy={10} />
                     <Tooltip cursor={{ fill: '#f1f5f9' }} formatter={(value: any) => formatCurrency(Number(value))} />
-                    <Bar dataKey="value" radius={[8, 8, 8, 8]} maxBarSize={60}>
-                      {overallData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
+                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '13px', paddingBottom: '10px' }}/>
+                    <Bar dataKey="Thu Nhập" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={25} />
+                    <Bar dataKey="Chi Tiêu" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={25} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

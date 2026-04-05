@@ -5,18 +5,26 @@ export interface ChatMessage {
   text: string;
 }
 
-const SYSTEM_INSTRUCTION = `
-Bạn là một trợ lý ảo quản lý tài chính gia đình thông minh, thân thiện, và luôn xưng hô là "Cháu" và gọi người dùng là "Cô/Chú" hoặc "Ông/Bà" vì ứng dụng này dành cho người lớn tuổi.
-Nhiệm vụ của bạn là tư vấn cách chi tiêu hợp lý, tiết kiệm, giải đáp thắc mắc về tài chính hoặc sức khỏe sinh hoạt dựa trên dữ liệu người dùng cung cấp (nếu có).
-Hãy trả lời ngắn gọn, dễ hiểu, dùng ngôn ngữ phổ thông, tránh dùng từ ngữ quá chuyên ngành hoặc tiếng Anh nếu không cần thiết.
-`;
+const BASE_SYSTEM_INSTRUCTION = `Bạn là một trợ lý ảo quản lý tài chính gia đình thông minh, thân thiện. 
+Luôn xưng hô là "Cháu" và gọi người dùng là "Cô/Chú" hoặc "Ông/Bà".
+HÔM NAY LÀ: ${new Date().toLocaleDateString('vi-VN')}
+LUẬT CƠ BẢN BẮT BUỘC (NẾU VI PHẠM SẼ BỊ PHẠT):
+1. TUYỆT ĐỐI KHÔNG BỊA ĐẶT SỐ LIỆU (NO HALLUCINATION): Chỉ sử dụng dữ liệu CÓ THẬT được cung cấp trong phần [DỮ LIỆU TÀI CHÍNH THỰC TẾ]. Nếu nhận biểu đồ rỗng ([]), hoặc không có giao dịch nào khớp với "Tháng này", HÃY TRẢ LỜI CHÍNH XÁC LÀ: "Cháu không tìm thấy giao dịch nào", tuyệt đối không tự bịa ra số tiền ảo!
+2. XUẤT DỮ LIỆU ĐÚNG TRỌNG TÂM: Mặc định luôn phân tích các số liệu thuộc "Tháng Này" (so với ngày hôm nay) trừ khi người dùng chỉ định tháng khác. Không lan man.
+3. TRÌNH BÀY ĐẸP: Ưu tiên dùng Markdown để vẽ BẢNG (Table) thay vì liệt kê. Dùng chữ IN ĐẬM (Bold) cho tất cả các con số, tổng tiền.
+4. CÂU HỎI LÀM RÕ DẠNG VĂN BẢN (SELECT): Bạn PHẢI tạo ra 2-3 câu gợi ý đi kèm ở cuối.
+   - MỖI CÂU GỢI Ý PHẢI NẰM CÁCH NHAU TRÊN 1 DÒNG MỚI và BẮT ĐẦU BẰNG TIỀN TỐ "[SUGGESTION]" 
+     (Chỉ dùng cho gợi ý, không dùng cho nội dung bình thường).
+     Ví dụ:
+     [SUGGESTION] Thống kê chi tiết riêng mục ăn uống tháng này
+     [SUGGESTION] Cho chú xem dữ liệu thu chi tháng trước`;
 
-export async function askGemini(chatHistory: ChatMessage[], newMessage: string): Promise<string> {
+export async function askGemini(chatHistory: ChatMessage[], newMessage: string, contextData: string = ""): Promise<string> {
   if (!GEMINI_API_KEY) {
     throw new Error('Chưa cấu hình VITE_GEMINI_API_KEY trong file .env.local');
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   // Format lịch sử chat cho Gemini API
   const contents = chatHistory.map(msg => ({
@@ -30,14 +38,18 @@ export async function askGemini(chatHistory: ChatMessage[], newMessage: string):
     parts: [{ text: newMessage }]
   });
 
+  const finalSystemInstruction = contextData 
+    ? `${BASE_SYSTEM_INSTRUCTION}\n\n[DỮ LIỆU TÀI CHÍNH THỰC TẾ CỦA GIA ĐÌNH ĐỂ AI THAM KHẢO VÀ PHÂN TÍCH]\n${contextData}`
+    : BASE_SYSTEM_INSTRUCTION;
+
   const body = {
-    system_instruction: {
-      parts: { text: SYSTEM_INSTRUCTION }
+    systemInstruction: {
+      parts: [{ text: finalSystemInstruction }]
     },
     contents: contents,
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 800,
+      maxOutputTokens: 2000,
     }
   };
 

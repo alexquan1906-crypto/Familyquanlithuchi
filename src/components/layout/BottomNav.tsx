@@ -5,8 +5,8 @@ const navItems = [
   { path: '/', icon: Home, label: 'Tổng quan' },
   { path: '/finance', icon: Wallet, label: 'Thu Chi' },
   { path: '/stats', icon: PieChart, label: 'Thống kê' },
-  { path: '/tasks', icon: CalendarDays, label: 'Nhiệm vụ' },
-  { path: '/chat', icon: MessageSquare, label: 'Trợ lý AI' },
+  { path: '/tasks', icon: CalendarDays, label: 'Lịch Âm Dương' },
+  { path: '/ai-chat', icon: MessageSquare, label: 'Trợ lý AI' },
 ];
 
 export default function BottomNav() {
