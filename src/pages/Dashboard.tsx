@@ -111,9 +111,9 @@ export default function Dashboard() {
 
       {/* Modals Overlay */}
       {modalType !== 'none' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative flex flex-col max-h-[90vh]">
-            <div className="flex justify-between items-center p-5 border-b border-slate-100 shrink-0">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto sm:p-6 p-4 flex items-start sm:items-center justify-center pb-20">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative flex flex-col my-auto mt-8 sm:mt-auto">
+            <div className="flex justify-between items-center p-5 border-b border-slate-100 shrink-0 sticky top-0 bg-white rounded-t-3xl z-10">
               <h2 className={`text-xl font-black ${modalType === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                 {modalType === 'income' ? 'Thêm Thu Nhập Mới' : 'Nhập Khoản Chi Tiêu'}
               </h2>
@@ -124,7 +124,7 @@ export default function Dashboard() {
                 <X size={18} />
               </button>
             </div>
-            <div className="p-5 overflow-y-auto grow">
+            <div className="p-1 sm:p-5 mb-5">
               {modalType === 'income' && <IncomeForm onSubmit={handleIncomeSubmit} onCancel={() => setModalType('none')} />}
               {modalType === 'expense' && <ExpenseForm onSubmit={handleExpenseSubmit} onCancel={() => setModalType('none')} />}
             </div>

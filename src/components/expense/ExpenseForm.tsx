@@ -64,9 +64,6 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
-      <h3 className="text-xl font-bold text-slate-800">
-        {initialData ? '✏️ Cập Nhật Chi Tiêu' : '💸 Thêm Chi Tiêu Mới'}
-      </h3>
       
       {/* Danh mục */}
       <div>

@@ -43,9 +43,6 @@ export default function IncomeForm({ onSubmit, initialData, onCancel, isLoading 
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 bg-white p-5 md:p-6 rounded-2xl border border-slate-200">
-      <h3 className="text-xl font-bold text-slate-800">
-        {initialData ? '✏️ Cập Nhật Thu Nhập' : '💰 Thêm Thu Nhập Mới'}
-      </h3>
       
       {/* Chọn Bố / Mẹ */}
       <div>
