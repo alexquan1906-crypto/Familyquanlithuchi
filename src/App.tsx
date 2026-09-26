@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import FinancePage from './pages/FinancePage';
@@ -11,6 +12,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-center" richColors closeButton duration={4000} />
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
         

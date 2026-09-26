@@ -16,29 +16,36 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['logo.jpg'],
+      workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,webmanifest}']
+      },
       devOptions: {
         enabled: false, // Tắt service worker ở môi trường dev để tránh kẹt cache trên mobile
       },
       manifest: {
         name: 'Family Finance Manager',
-        short_name: 'Thu Chi',
-        description: 'Ứng dụng quản lý tài chính gia đình',
-        theme_color: '#10b981',
-        background_color: '#f8fafc',
+        short_name: 'Thu Chi Gia Đình',
+        description: 'Ứng dụng quản lý tài chính thu chi gia đình',
+        theme_color: '#0f172a',
+        background_color: '#0f172a',
         display: 'standalone',
         orientation: 'portrait',
+        start_url: '/',
         icons: [
           {
             src: 'logo.jpg',
             sizes: '192x192',
             type: 'image/jpeg',
-            purpose: 'any'
+            purpose: 'any maskable'
           },
           {
             src: 'logo.jpg',
             sizes: '512x512',
             type: 'image/jpeg',
-            purpose: 'any'
+            purpose: 'any maskable'
           }
         ]
       }

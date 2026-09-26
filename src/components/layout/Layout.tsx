@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import Header from './Header';
-import { Toaster } from 'sonner';
 
 export default function Layout() {
   return (
@@ -15,13 +14,6 @@ export default function Layout() {
         </main>
       </div>
       <BottomNav />
-      <Toaster 
-        position="top-center" 
-        richColors 
-        toastOptions={{ 
-          className: 'text-sm font-semibold rounded-2xl shadow-xl' 
-        }} 
-      />
     </div>
   );
 }
