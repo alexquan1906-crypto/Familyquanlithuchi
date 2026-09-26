@@ -1,1 +1,1 @@
-export { useAuth, AuthProvider, formatAuthEmail } from '../context/AuthContext';
+export { useAuth, AuthProvider, formatAuthEmail, normalizeEmail } from '../context/AuthContext';

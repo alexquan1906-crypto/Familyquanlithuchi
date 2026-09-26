@@ -16,7 +16,7 @@ export default function ProtectedRoute() {
           <div className="absolute -inset-2 rounded-3xl border border-emerald-500/30 animate-ping pointer-events-none"></div>
         </div>
         <div className="w-8 h-8 border-3 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin mb-3"></div>
-        <p className="text-sm font-semibold text-slate-300">Đang chuẩn bị không gian gia đình...</p>
+        <p className="text-sm font-semibold text-slate-300">Đang tải ứng dụng...</p>
       </div>
     );
   }
