@@ -26,36 +26,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    // Safety timeout: 3.5s
+    // Safety timeout: 5s (cho thiết bị mobile chậm)
     const timer = setTimeout(() => {
-      if (isMounted) setLoading(false);
-    }, 3500);
-
-    // Initial session check
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        if (isMounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.warn('Lỗi lấy phiên đăng nhập Supabase:', err);
-        if (isMounted) setLoading(false);
-      })
-      .finally(() => {
-        clearTimeout(timer);
-      });
-
-    // Listen to Auth State Changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (isMounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
+      if (isMounted && loading) {
+        console.warn('[Auth] Safety timeout triggered');
         setLoading(false);
       }
-    });
+    }, 5000);
+
+    // 1. Đăng ký listener TRƯỚC để không bỏ lỡ event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        if (!isMounted) return;
+        console.log('[Auth] onAuthStateChange:', event);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    // 2. Kiểm tra session hiện tại (dùng SafeStorage trong supabase client, không truy cập localStorage trực tiếp)
+    supabase.auth.getSession()
+      .then(({ data: { session: currentSession }, error }) => {
+        if (!isMounted) return;
+        if (error) {
+          console.warn('[Auth] getSession error:', error.message);
+        }
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.warn('[Auth] getSession exception:', err);
+        if (isMounted) setLoading(false);
+      });
 
     return () => {
       isMounted = false;

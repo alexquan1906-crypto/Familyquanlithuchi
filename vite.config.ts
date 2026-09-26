@@ -20,7 +20,35 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,webmanifest}']
+        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,webmanifest}'],
+        // Không cho SW can thiệp vào URL xác thực và API Supabase
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [
+          /^\/auth/,
+          /supabase/,
+          /\/rest\/v1\//,
+          /\/auth\/v1\//,
+          /\.supabase\.co/,
+        ],
+        runtimeCaching: [
+          {
+            // Tất cả request tới Supabase phải luôn đi qua network, không cache
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            // Các font/image từ CDN thì cache lại cho nhanh
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 năm
+              },
+            },
+          },
+        ],
       },
       devOptions: {
         enabled: false, // Tắt service worker ở môi trường dev để tránh kẹt cache trên mobile
