@@ -64,6 +64,17 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Footer Link to Landing Page */}
+      <div className="p-3 border-t border-slate-100">
+        <NavLink
+          to="/landing"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-emerald-600 hover:bg-emerald-50/60 transition-all"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Giới thiệu & Tính năng</span>
+        </NavLink>
+      </div>
     </aside>
   );
 }
