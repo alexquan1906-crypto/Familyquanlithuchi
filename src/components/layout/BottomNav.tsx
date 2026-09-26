@@ -12,7 +12,7 @@ const navItems = [
 export default function BottomNav() {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-nav safe-area-bottom z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-      <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
+      <div className="flex justify-around items-stretch h-16 max-w-md mx-auto px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -20,7 +20,7 @@ export default function BottomNav() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 relative ${
+                `flex flex-col items-center justify-center flex-1 py-1.5 transition-all duration-200 relative touch-manipulation ${
                   isActive 
                     ? 'text-emerald-600 scale-105' 
                     : 'text-slate-400 hover:text-slate-600 active:scale-95'
@@ -51,3 +51,4 @@ export default function BottomNav() {
     </nav>
   );
 }
+

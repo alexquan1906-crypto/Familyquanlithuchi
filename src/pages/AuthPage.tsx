@@ -59,7 +59,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-900">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-y-auto bg-slate-900">
       {/* Background ambient orbs */}
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -113,7 +113,10 @@ export default function AuthPage() {
                 type="text"
                 autoCapitalize="none"
                 autoCorrect="off"
+                autoComplete="username"
                 spellCheck={false}
+                inputMode="email"
+                enterKeyHint="next"
                 value={account}
                 onChange={(e) => setAccount(e.target.value)}
                 required
@@ -135,7 +138,9 @@ export default function AuthPage() {
                 type={showPassword ? 'text' : 'password'}
                 autoCapitalize="none"
                 autoCorrect="off"
+                autoComplete="current-password"
                 spellCheck={false}
+                enterKeyHint="go"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

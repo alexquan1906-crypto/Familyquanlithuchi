@@ -78,7 +78,7 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
         <label className="block text-slate-700 font-bold text-xs uppercase tracking-wider mb-2">
           Chọn Danh Mục
         </label>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {expenseCategories.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
@@ -118,6 +118,8 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
         <div className="relative">
           <input
             type="number"
+            inputMode="decimal"
+            enterKeyHint="done"
             {...register('amount')}
             className={`w-full min-h-[54px] text-xl md:text-2xl font-black px-4 pr-10 border rounded-2xl bg-slate-50/50 focus:bg-white focus:outline-none transition-all ${
               errors.amount ? 'border-rose-500 focus:ring-2 focus:ring-rose-500' : 'border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
@@ -185,6 +187,8 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
           </label>
           <input
             type="text"
+            inputMode="text"
+            enterKeyHint="done"
             {...register('note')}
             className="w-full min-h-[48px] px-4 text-sm border border-slate-200 rounded-2xl bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 focus:outline-none transition-all"
             placeholder="Ví dụ: Mua thức ăn ở siêu thị, bảo dưỡng xe..."

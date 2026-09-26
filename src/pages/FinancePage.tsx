@@ -130,7 +130,7 @@ export default function FinancePage() {
 
       {/* Form Card (Expandable) */}
       {isFormVisible && (
-        <div className="bg-white rounded-3xl p-5 md:p-6 border border-slate-200/80 shadow-xl animate-in-scale">
+        <div className="bg-white rounded-3xl p-5 md:p-6 border border-slate-200/80 shadow-xl animate-in-scale max-h-[75vh] overflow-y-auto overscroll-contain">
           <div className="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
             <h3 className="font-black text-slate-800 text-lg">
               {currentTab === 'income' 
@@ -289,7 +289,7 @@ export default function FinancePage() {
             setIsFormVisible(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className={`sm:hidden fixed bottom-20 right-4 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl z-40 active:scale-90 transition-all ${
+          className={`sm:hidden fixed bottom-24 right-4 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl z-40 active:scale-90 transition-all touch-manipulation ${
             currentTab === 'income' 
               ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 glow-emerald' 
               : 'bg-gradient-to-tr from-rose-600 to-red-500 glow-rose'

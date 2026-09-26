@@ -108,143 +108,148 @@ export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilte
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[88dvh] sm:max-h-[90vh] animate-in-scale border border-slate-100">
-            {/* Header */}
-            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/80 shrink-0 rounded-t-3xl">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                  <Filter size={18} />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-slate-800 text-base">Bộ Lọc Thời Gian</h3>
-                  <p className="text-xs text-slate-400">Chọn khoảng thời gian tính toán thu chi</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setIsOpen(false)} 
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200/70 text-slate-500 hover:bg-slate-300 transition-colors"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="p-5 overflow-y-auto min-h-0 flex-1 space-y-6 custom-scrollbar">
-              {/* Presets */}
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">
-                  Mốc Nhanh Tiện Lợi
-                </h4>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {PREDEFINED.map(p => {
-                    const isSelected = activeFilterId === p.id;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => handleApply(p.id as typeof activeFilterId)}
-                        className={`p-3 rounded-2xl text-left border transition-all duration-200 relative ${
-                          isSelected 
-                            ? 'border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-sm' 
-                            : 'border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/70 text-slate-700'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <span className="font-bold text-sm leading-tight block">{p.label}</span>
-                          {isSelected && <Check size={16} className="text-emerald-600 shrink-0 ml-1" />}
-                        </div>
-                        <span className="text-[11px] text-slate-400 mt-0.5 block">{p.desc}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Specific Month & Year */}
-              <div className="bg-slate-50/80 p-4 rounded-3xl border border-slate-200/80 space-y-3">
-                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  Xem Lịch Sử Tháng Cụ Thể
-                </h4>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Tháng</label>
-                    <select
-                      value={specificMonth}
-                      onChange={e => setSpecificMonth(Number(e.target.value))}
-                      className="w-full bg-white border border-slate-200 rounded-2xl p-2.5 font-bold text-slate-700 outline-none text-sm shadow-sm"
-                    >
-                      {[...Array(12)].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
-                      ))}
-                    </select>
+        <div 
+          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md overflow-y-auto overscroll-contain"
+          onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
+        >
+          <div className="min-h-full flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="bg-white w-full max-w-lg shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] animate-slide-up sm:animate-in-scale border border-slate-100 rounded-t-3xl sm:rounded-3xl">
+              {/* Header */}
+              <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/80 shrink-0 rounded-t-3xl">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <Filter size={18} />
                   </div>
-                  <div className="w-32">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Năm</label>
-                    <select
-                      value={specificYear}
-                      onChange={e => setSpecificYear(Number(e.target.value))}
-                      className="w-full bg-white border border-slate-200 rounded-2xl p-2.5 font-bold text-slate-700 outline-none text-sm shadow-sm"
-                    >
-                      {[...Array(11)].map((_, i) => {
-                        const y = currentYear - 5 + i;
-                        return <option key={y} value={y}>{y}</option>;
-                      })}
-                    </select>
+                  <div>
+                    <h3 className="font-extrabold text-slate-800 text-base">Bộ Lọc Thời Gian</h3>
+                    <p className="text-xs text-slate-400">Chọn khoảng thời gian tính toán thu chi</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button 
-                    type="button"
-                    onClick={() => handleApply('specific_solar_month')} 
-                    className="py-2.5 bg-slate-800 hover:bg-slate-900 active:scale-98 text-white rounded-2xl font-bold text-xs md:text-sm transition-all shadow-sm"
-                  >
-                    Xem Tháng Dương
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => handleApply('specific_lunar_month')} 
-                    className="py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white rounded-2xl font-bold text-xs md:text-sm transition-all shadow-sm"
-                  >
-                    Xem Tháng Âm
-                  </button>
-                </div>
-              </div>
-
-              {/* Custom Date Range */}
-              <div className="space-y-3 pb-4">
-                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Tùy Chọn Khoảng Ngày Tự Do
-                </h4>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div className="flex flex-col">
-                    <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Từ ngày</label>
-                    <input
-                      type="date"
-                      value={customStart}
-                      onChange={e => setCustomStart(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 rounded-2xl p-2.5 outline-none font-semibold text-xs md:text-sm"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Đến ngày</label>
-                    <input
-                      type="date"
-                      value={customEnd}
-                      min={customStart}
-                      onChange={e => setCustomEnd(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 rounded-2xl p-2.5 outline-none font-semibold text-xs md:text-sm"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleApply('custom')}
-                  disabled={!customStart || !customEnd}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-2xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20"
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200/70 text-slate-500 hover:bg-slate-300 transition-colors"
                 >
-                  Áp Dụng Khoảng Ngày Tự Chọn
+                  <X size={16} />
                 </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 overflow-y-auto min-h-0 flex-1 space-y-6 custom-scrollbar overscroll-contain">
+                {/* Presets */}
+                <div>
+                  <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">
+                    Mốc Nhanh Tiện Lợi
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {PREDEFINED.map(p => {
+                      const isSelected = activeFilterId === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => handleApply(p.id as typeof activeFilterId)}
+                          className={`p-3 rounded-2xl text-left border transition-all duration-200 relative touch-manipulation ${
+                            isSelected 
+                              ? 'border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-sm' 
+                              : 'border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/70 text-slate-700'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold text-sm leading-tight block">{p.label}</span>
+                            {isSelected && <Check size={16} className="text-emerald-600 shrink-0 ml-1" />}
+                          </div>
+                          <span className="text-[11px] text-slate-400 mt-0.5 block">{p.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Specific Month & Year */}
+                <div className="bg-slate-50/80 p-4 rounded-3xl border border-slate-200/80 space-y-3">
+                  <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Xem Lịch Sử Tháng Cụ Thể
+                  </h4>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Tháng</label>
+                      <select
+                        value={specificMonth}
+                        onChange={e => setSpecificMonth(Number(e.target.value))}
+                        className="w-full bg-white border border-slate-200 rounded-2xl p-2.5 font-bold text-slate-700 outline-none text-sm shadow-sm"
+                      >
+                        {[...Array(12)].map((_, i) => (
+                          <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-32">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Năm</label>
+                      <select
+                        value={specificYear}
+                        onChange={e => setSpecificYear(Number(e.target.value))}
+                        className="w-full bg-white border border-slate-200 rounded-2xl p-2.5 font-bold text-slate-700 outline-none text-sm shadow-sm"
+                      >
+                        {[...Array(11)].map((_, i) => {
+                          const y = currentYear - 5 + i;
+                          return <option key={y} value={y}>{y}</option>;
+                        })}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button 
+                      type="button"
+                      onClick={() => handleApply('specific_solar_month')} 
+                      className="py-2.5 bg-slate-800 hover:bg-slate-900 active:scale-98 text-white rounded-2xl font-bold text-xs md:text-sm transition-all shadow-sm touch-manipulation"
+                    >
+                      Xem Tháng Dương
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => handleApply('specific_lunar_month')} 
+                      className="py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white rounded-2xl font-bold text-xs md:text-sm transition-all shadow-sm touch-manipulation"
+                    >
+                      Xem Tháng Âm
+                    </button>
+                  </div>
+                </div>
+
+                {/* Custom Date Range */}
+                <div className="space-y-3 pb-4">
+                  <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Tùy Chọn Khoảng Ngày Tự Do
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Từ ngày</label>
+                      <input
+                        type="date"
+                        value={customStart}
+                        onChange={e => setCustomStart(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-2xl p-2.5 outline-none font-semibold text-xs md:text-sm"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Đến ngày</label>
+                      <input
+                        type="date"
+                        value={customEnd}
+                        min={customStart}
+                        onChange={e => setCustomEnd(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-2xl p-2.5 outline-none font-semibold text-xs md:text-sm"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleApply('custom')}
+                    disabled={!customStart || !customEnd}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-2xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20 touch-manipulation"
+                  >
+                    Áp Dụng Khoảng Ngày Tự Chọn
+                  </button>
+                </div>
               </div>
             </div>
           </div>
