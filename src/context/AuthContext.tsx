@@ -26,26 +26,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    // Safety timeout: 5s (cho thiết bị mobile chậm)
+    // Timeout dự phòng: Không để giao diện bị kẹt loading quá 4s nếu mạng chậm
     const timer = setTimeout(() => {
-      if (isMounted && loading) {
-        console.warn('[Auth] Safety timeout triggered');
+      if (isMounted) {
         setLoading(false);
       }
-    }, 5000);
+    }, 4000);
 
-    // 1. Đăng ký listener TRƯỚC để không bỏ lỡ event
+    // 1. Lắng nghe thay đổi trạng thái xác thực
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         if (!isMounted) return;
-        console.log('[Auth] onAuthStateChange:', event);
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setLoading(false);
+        console.log('[Auth] onAuthStateChange:', event, !!newSession);
+
+        if (newSession) {
+          setSession(newSession);
+          setUser(newSession.user);
+          setLoading(false);
+          clearTimeout(timer);
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          clearTimeout(timer);
+        }
+        // Lưu ý: Nếu event là INITIAL_SESSION mà newSession = null,
+        // TUYỆT ĐỐI KHÔNG set loading = false ở đây, để getSession() đọc từ storage xong.
       }
     );
 
-    // 2. Kiểm tra session hiện tại (dùng SafeStorage trong supabase client, không truy cập localStorage trực tiếp)
+    // 2. Phục hồi phiên đăng nhập từ localStorage khi reload trang
     supabase.auth.getSession()
       .then(({ data: { session: currentSession }, error }) => {
         if (!isMounted) return;
@@ -57,10 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(currentSession.user);
         }
         setLoading(false);
+        clearTimeout(timer);
       })
       .catch((err) => {
         console.warn('[Auth] getSession exception:', err);
         if (isMounted) setLoading(false);
+        clearTimeout(timer);
       });
 
     return () => {
@@ -87,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 2. Nếu đăng nhập thất bại do tài khoản chưa tồn tại hoặc sai mật khẩu:
     if (signInError && signInError.message.includes('Invalid login credentials')) {
-      // Tự động kích hoạt tài khoản mới cho gia đình
+      // Tự động tạo/kích hoạt tài khoản mới cho thành viên gia đình
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -99,9 +111,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { isNewAccount: true };
       }
 
-      // Nếu đã có người tạo tài khoản này rồi nhưng người sau nhập sai mật khẩu
+      // Nếu tài khoản đã tồn tại sẵn trong hệ thống nhưng người dùng nhập sai mật khẩu
       if (signUpError && signUpError.message.toLowerCase().includes('already registered')) {
-        throw new Error('Sai mật khẩu của tài khoản gia đình này! Vui lòng hỏi lại người thân để nhập đúng mật khẩu.');
+        throw new Error('Sai mật khẩu của tài khoản gia đình này! Vui lòng kiểm tra lại mật khẩu.');
       }
 
       if (signUpError) {
