@@ -4,12 +4,14 @@ import { Income, Expense } from '../types';
 
 export function useStats() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [trendData, setTrendData] = useState<any[]>([]);
 
   const fetchStatsData = useCallback(async (startDate?: string, endDate?: string) => {
     setLoading(true);
+    setError(null);
     try {
       const qsIncome = supabase.from('income').select('*');
       const qsExpense = supabase.from('expense').select('*');
@@ -26,6 +28,7 @@ export function useStats() {
       setExpenses(expenseRes.data as Expense[]);
     } catch (error) {
       console.error("Lỗi lấy dữ liệu thống kê:", error);
+      setError(error instanceof Error ? error.message : 'Không thể tải dữ liệu thống kê.');
     } finally {
       setLoading(false);
     }
@@ -104,6 +107,7 @@ export function useStats() {
 
   return {
     loading,
+    error,
     fetchStatsData,
     fetchTrendData,
     trendData,

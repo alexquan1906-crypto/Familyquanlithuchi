@@ -40,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export default function StatsPage() {
   const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
 
-  const { loading, fetchStatsData, fetchTrendData, trendData, totalIncome, totalExpense, incomeByPerson, pieChartData } = useStats();
+  const { loading, error, fetchStatsData, fetchTrendData, trendData, totalIncome, totalExpense, incomeByPerson, pieChartData } = useStats();
 
   useEffect(() => {
     fetchStatsData(dateRange.start, dateRange.end);
@@ -65,6 +65,11 @@ export default function StatsPage() {
     <div className="space-y-4 md:space-y-6 max-w-5xl mx-auto pb-10">
       {/* Date Filter */}
       <FinanceDateFilter onFilterComplete={(start, end) => setDateRange({ start, end })} />
+
+      {error && <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+        Không thể tải dữ liệu thống kê: {error}
+        <button className="ml-3 font-bold underline" onClick={() => void fetchStatsData(dateRange.start, dateRange.end)}>Thử lại</button>
+      </div>}
 
       {loading ? (
         <div className="animate-pulse space-y-4">

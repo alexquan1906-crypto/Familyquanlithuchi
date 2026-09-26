@@ -6,6 +6,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  authError: string | null;
   signIn: (accountInput: string, password: string) => Promise<void>;
   signUp: (accountInput: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -31,23 +32,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    // Timeout dự phòng 2.5s tránh màn hình bị treo loading trên điện thoại mạng yếu
+    // Keep the route guarded while storage/token recovery is still pending.
     const timer = setTimeout(() => {
       if (isMounted) {
+        setAuthError('Không thể khôi phục phiên đăng nhập. Vui lòng kiểm tra kết nối và thử lại.');
         setLoading(false);
       }
-    }, 2500);
+    }, 15000);
+
+    let authChanged = false;
 
     // 1. Lắng nghe thay đổi trạng thái xác thực
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
+      (event, newSession) => {
         if (!isMounted) return;
+        if (event !== 'INITIAL_SESSION') authChanged = true;
         setSession(newSession);
         setUser(newSession ? newSession.user : null);
+        setAuthError(null);
         setLoading(false);
         clearTimeout(timer);
       }
@@ -57,19 +64,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession()
       .then(({ data: { session: currentSession }, error }) => {
         if (!isMounted) return;
+        if (authChanged) return;
         if (error) {
+          setAuthError('Không thể khôi phục phiên đăng nhập. Vui lòng thử lại.');
           console.warn('[Auth] getSession error:', error.message);
-        }
-        if (currentSession) {
+        } else {
           setSession(currentSession);
-          setUser(currentSession.user);
+          setUser(currentSession?.user ?? null);
+          setAuthError(null);
         }
         setLoading(false);
         clearTimeout(timer);
       })
       .catch((err) => {
         console.warn('[Auth] getSession exception:', err);
-        if (isMounted) setLoading(false);
+        if (isMounted && !authChanged) {
+          setAuthError('Không thể khôi phục phiên đăng nhập. Vui lòng thử lại.');
+          setLoading(false);
+        }
         clearTimeout(timer);
       });
 
@@ -98,10 +110,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(error.message || 'Đăng nhập không thành công.');
     }
 
-    if (data.session) {
-      setSession(data.session);
-      setUser(data.user);
-    }
+    if (!data.session) throw new Error('Đăng nhập chưa tạo được phiên. Vui lòng thử lại.');
+    setSession(data.session);
+    setUser(data.user);
+    setAuthError(null);
   };
 
   // ĐĂNG KÝ
@@ -124,13 +136,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.user);
     } else {
       // Nếu Supabase chưa trả về session ngay, thử đăng nhập luôn
-      const { data: loginData } = await supabase.auth.signInWithPassword({
+      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (loginData?.session) {
         setSession(loginData.session);
         setUser(loginData.user);
+      } else {
+        throw new Error(loginError?.message || 'Tài khoản đã được tạo. Vui lòng xác nhận email rồi đăng nhập.');
       }
     }
   };
@@ -154,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut, signInOrSignUp }}>
+    <AuthContext.Provider value={{ session, user, loading, authError, signIn, signUp, signOut, signInOrSignUp }}>
       {children}
     </AuthContext.Provider>
   );

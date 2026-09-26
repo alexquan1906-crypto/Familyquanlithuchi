@@ -1,8 +1,9 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import AuthRecovery from './AuthRecovery';
 
 export default function ProtectedRoute() {
-  const { session, loading } = useAuth();
+  const { session, loading, authError } = useAuth();
 
   if (loading) {
     return (
@@ -20,6 +21,8 @@ export default function ProtectedRoute() {
       </div>
     );
   }
+
+  if (authError) return <AuthRecovery message={authError} />;
 
   if (!session) {
     return <Navigate to="/auth" replace />;

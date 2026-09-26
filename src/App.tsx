@@ -10,9 +10,10 @@ import TasksPage from './pages/TasksPage';
 import AuthPage from './pages/AuthPage';
 import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AuthRecovery from './components/auth/AuthRecovery';
 
 function HomeRoute() {
-  const { session, loading } = useAuth();
+  const { session, loading, authError } = useAuth();
 
   if (loading) {
     return (
@@ -22,6 +23,8 @@ function HomeRoute() {
       </div>
     );
   }
+
+  if (authError) return <AuthRecovery message={authError} />;
 
   // Nếu đã đăng nhập: vào thẳng Dashboard
   if (session) {

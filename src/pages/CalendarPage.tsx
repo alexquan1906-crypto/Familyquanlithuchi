@@ -10,7 +10,7 @@ export default function CalendarPage() {
   const month = currentDate.getMonth() + 1;
   const year = currentDate.getFullYear();
 
-  const { loading, transactionsByDate, fetchMonthTransactions } = useCalendarTransactions();
+  const { loading, error, transactionsByDate, fetchMonthTransactions } = useCalendarTransactions();
 
   const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
   const [selectedDayData, setSelectedDayData] = useState<CalendarDayData | null>(null);
@@ -43,6 +43,10 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-5xl mx-auto pb-10">
+      {error && <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+        Không thể tải dữ liệu lịch: {error}
+        <button className="ml-3 font-bold underline" onClick={() => void fetchMonthTransactions(month, year)}>Thử lại</button>
+      </div>}
       {/* Header & Month Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 md:p-5 rounded-3xl border border-slate-200/80 shadow-sm">
         <div className="flex items-center gap-3">

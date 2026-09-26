@@ -12,10 +12,12 @@ export interface CalendarDayData {
 
 export function useCalendarTransactions() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [transactionsByDate, setTransactionsByDate] = useState<Record<string, CalendarDayData>>({});
 
   const fetchMonthTransactions = useCallback(async (month: number, year: number) => {
     setLoading(true);
+    setError(null);
     try {
       const startOfMonth = new Date(year, month - 1, 1).toISOString();
       const endOfMonth = new Date(year, month, 0, 23, 59, 59).toISOString();
@@ -50,10 +52,11 @@ export function useCalendarTransactions() {
       setTransactionsByDate(grouped);
     } catch (error) {
       console.error("Lỗi lấy dữ liệu lịch:", error);
+      setError(error instanceof Error ? error.message : 'Không thể tải dữ liệu lịch.');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  return { loading, transactionsByDate, fetchMonthTransactions };
+  return { loading, error, transactionsByDate, fetchMonthTransactions };
 }

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 export function useDashboardStats(initialStartDate?: string, initialEndDate?: string) {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpense, setTotalExpense] = useState(0);
@@ -11,10 +12,13 @@ export function useDashboardStats(initialStartDate?: string, initialEndDate?: st
   const [expenseTrend, setExpenseTrend] = useState({ value: 0, isPositive: true });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [rawTransactions, setRawTransactions] = useState<any[]>([]);
+  const requestId = useRef(0);
 
   const fetchStats = useCallback(async (startDate?: string, endDate?: string) => {
+    const currentRequest = ++requestId.current;
     try {
       setLoading(true);
+      setError(null);
       const now = new Date();
       
       // Default to Current month bounds if not provided
@@ -26,13 +30,20 @@ export function useDashboardStats(initialStartDate?: string, initialEndDate?: st
       const prevStart = new Date(new Date(finalStart).getTime() - rangeMs).toISOString();
       const prevEnd = new Date(new Date(finalStart).getTime() - 1).toISOString();
 
-      // Fetch Income
-      const { data: currentIncomes } = await supabase.from('income').select('amount, date, note, person, id').gte('date', finalStart).lte('date', finalEnd);
-      const { data: prevIncomes } = await supabase.from('income').select('amount').gte('date', prevStart).lte('date', prevEnd);
-      
-      // Fetch Expense
-      const { data: currentExpenses } = await supabase.from('expense').select('amount, date, note, category, id').gte('date', finalStart).lte('date', finalEnd);
-      const { data: prevExpenses } = await supabase.from('expense').select('amount').gte('date', prevStart).lte('date', prevEnd);
+      const [currentIncomeResult, previousIncomeResult, currentExpenseResult, previousExpenseResult] = await Promise.all([
+        supabase.from('income').select('amount, date, note, person, id').gte('date', finalStart).lte('date', finalEnd),
+        supabase.from('income').select('amount').gte('date', prevStart).lte('date', prevEnd),
+        supabase.from('expense').select('amount, date, note, category, id').gte('date', finalStart).lte('date', finalEnd),
+        supabase.from('expense').select('amount').gte('date', prevStart).lte('date', prevEnd),
+      ]);
+      const queryError = currentIncomeResult.error || previousIncomeResult.error || currentExpenseResult.error || previousExpenseResult.error;
+      if (queryError) throw queryError;
+      const currentIncomes = currentIncomeResult.data;
+      const prevIncomes = previousIncomeResult.data;
+      const currentExpenses = currentExpenseResult.data;
+      const prevExpenses = previousExpenseResult.data;
+
+      if (currentRequest !== requestId.current) return;
 
       const currIncTotal = (currentIncomes || []).reduce((sum, item) => sum + item.amount, 0);
       const prevIncTotal = (prevIncomes || []).reduce((sum, item) => sum + item.amount, 0);
@@ -63,8 +74,11 @@ export function useDashboardStats(initialStartDate?: string, initialEndDate?: st
 
     } catch (error) {
       console.error('Lỗi khi fetch dashboard stats:', error);
+      if (currentRequest === requestId.current) {
+        setError(error instanceof Error ? error.message : 'Không thể tải dữ liệu.');
+      }
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, []);
 
@@ -81,6 +95,7 @@ export function useDashboardStats(initialStartDate?: string, initialEndDate?: st
     recentTransactions,
     rawTransactions,
     loading,
+    error,
     fetchStats
   };
 }

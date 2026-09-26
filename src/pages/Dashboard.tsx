@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, Wallet, TrendingUp, PlusCircle, MinusCircle, X } from 'lucide-react';
 import SummaryCard from '../components/stats/SummaryCard';
 import { useDashboardStats } from '../hooks/useDashboardStats';
@@ -12,15 +12,11 @@ import { useExpense } from '../hooks/useExpense';
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
 
-  const { totalIncome, totalExpense, balance, incomeTrend, expenseTrend, rawTransactions, loading, fetchStats } = useDashboardStats(dateRange.start, dateRange.end);
+  const { totalIncome, totalExpense, balance, incomeTrend, expenseTrend, rawTransactions, loading, error, fetchStats } = useDashboardStats(dateRange.start, dateRange.end);
   const { addIncome } = useIncome();
   const { addExpense } = useExpense();
 
   const [modalType, setModalType] = useState<'none' | 'income' | 'expense'>('none');
-
-  useEffect(() => {
-    fetchStats(dateRange.start, dateRange.end);
-  }, [dateRange.start, dateRange.end, fetchStats]);
 
   const handleIncomeSubmit = async (data: any) => {
     const success = await addIncome(data);
@@ -62,6 +58,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-5xl mx-auto">
+      {error && (
+        <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          Không thể tải dữ liệu: {error}
+          <button className="ml-3 font-bold underline" onClick={() => void fetchStats(dateRange.start, dateRange.end)}>Thử lại</button>
+        </div>
+      )}
       {/* Quick Action Gradient Buttons */}
       <div className="grid grid-cols-2 gap-3 md:gap-4">
         <button
