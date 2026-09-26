@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Expense } from '../types';
 import { toast } from 'sonner';
@@ -6,8 +6,12 @@ import { toast } from 'sonner';
 export function useExpense() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
+  const requestId = useRef(0);
+  const lastRange = useRef<{ start?: string; end?: string }>({});
 
   const fetchExpenses = useCallback(async (startDate?: string, endDate?: string) => {
+    const currentRequest = ++requestId.current;
+    lastRange.current = { start: startDate, end: endDate };
     setLoading(true);
     try {
       let query = supabase.from('expense').select('*').order('date', { ascending: false });
@@ -19,11 +23,11 @@ export function useExpense() {
       const { data, error } = await query;
       
       if (error) throw error;
-      setExpenses(data as Expense[]);
+      if (currentRequest === requestId.current) setExpenses(data as Expense[]);
     } catch (error: any) {
-      toast.error('Lỗi tải dữ liệu chi tiêu: ' + error.message);
+      if (currentRequest === requestId.current) toast.error('Lỗi tải dữ liệu chi tiêu: ' + error.message);
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, []);
 
@@ -33,7 +37,7 @@ export function useExpense() {
       if (error) throw error;
       
       toast.success('Đã lưu chi tiêu!');
-      fetchExpenses(); // Refresh
+      void fetchExpenses(lastRange.current.start, lastRange.current.end);
       return true;
     } catch (error: any) {
       toast.error('Không thể lưu chi tiêu: ' + error.message);
@@ -47,7 +51,7 @@ export function useExpense() {
       if (error) throw error;
       
       toast.success('Cập nhật chi tiêu thành công!');
-      fetchExpenses();
+      void fetchExpenses(lastRange.current.start, lastRange.current.end);
       return true;
     } catch (error: any) {
       toast.error('Lỗi khi cập nhật: ' + error.message);
@@ -61,7 +65,7 @@ export function useExpense() {
       if (error) throw error;
       
       toast.success('Đã xóa giao dịch chi tiêu.');
-      fetchExpenses();
+      void fetchExpenses(lastRange.current.start, lastRange.current.end);
       return true;
     } catch (error: any) {
       toast.error('Gặp lỗi khi xóa: ' + error.message);

@@ -1,15 +1,17 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Income, Expense } from '../types';
 
 export function useStats() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestId = useRef(0);
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [trendData, setTrendData] = useState<any[]>([]);
 
   const fetchStatsData = useCallback(async (startDate?: string, endDate?: string) => {
+    const currentRequest = ++requestId.current;
     setLoading(true);
     setError(null);
     try {
@@ -24,13 +26,16 @@ export function useStats() {
       if (incomeRes.error) throw incomeRes.error;
       if (expenseRes.error) throw expenseRes.error;
 
+      if (currentRequest !== requestId.current) return;
       setIncomes(incomeRes.data as Income[]);
       setExpenses(expenseRes.data as Expense[]);
     } catch (error) {
       console.error("Lỗi lấy dữ liệu thống kê:", error);
-      setError(error instanceof Error ? error.message : 'Không thể tải dữ liệu thống kê.');
+      if (currentRequest === requestId.current) {
+        setError(error instanceof Error ? error.message : 'Không thể tải dữ liệu thống kê.');
+      }
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, []);
 

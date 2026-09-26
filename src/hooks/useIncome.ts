@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Income } from '../types';
 import { toast } from 'sonner';
@@ -6,8 +6,12 @@ import { toast } from 'sonner';
 export function useIncome() {
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [loading, setLoading] = useState(false);
+  const requestId = useRef(0);
+  const lastRange = useRef<{ start?: string; end?: string }>({});
 
   const fetchIncomes = useCallback(async (startDate?: string, endDate?: string) => {
+    const currentRequest = ++requestId.current;
+    lastRange.current = { start: startDate, end: endDate };
     setLoading(true);
     try {
       let query = supabase.from('income').select('*').order('date', { ascending: false });
@@ -19,11 +23,11 @@ export function useIncome() {
       const { data, error } = await query;
       
       if (error) throw error;
-      setIncomes(data as Income[]);
+      if (currentRequest === requestId.current) setIncomes(data as Income[]);
     } catch (error: any) {
-      toast.error('Lỗi tải dữ liệu thu nhập: ' + error.message);
+      if (currentRequest === requestId.current) toast.error('Lỗi tải dữ liệu thu nhập: ' + error.message);
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, []);
 
@@ -33,7 +37,7 @@ export function useIncome() {
       if (error) throw error;
       
       toast.success('Đã thêm thu nhập thành công!');
-      fetchIncomes(); // Refresh
+      void fetchIncomes(lastRange.current.start, lastRange.current.end);
       return true;
     } catch (error: any) {
       toast.error('Không thể thêm thu nhập: ' + error.message);
@@ -47,7 +51,7 @@ export function useIncome() {
       if (error) throw error;
       
       toast.success('Cập nhật thu nhập thành công!');
-      fetchIncomes();
+      void fetchIncomes(lastRange.current.start, lastRange.current.end);
       return true;
     } catch (error: any) {
       toast.error('Lỗi khi cập nhật: ' + error.message);
@@ -61,7 +65,7 @@ export function useIncome() {
       if (error) throw error;
       
       toast.success('Đã xóa giao dịch.');
-      fetchIncomes();
+      void fetchIncomes(lastRange.current.start, lastRange.current.end);
       return true;
     } catch (error: any) {
       toast.error('Gặp lỗi khi xóa: ' + error.message);
