@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Filter, Calendar, X } from 'lucide-react';
+import { Filter, Calendar, X, Check } from 'lucide-react';
 import { Lunar, Solar } from 'lunar-javascript';
 import { FilterPeriodMode, getDateRangeForPeriod } from '../../lib/dateUtils';
 
@@ -8,12 +8,12 @@ interface FinanceDateFilterProps {
 }
 
 const PREDEFINED = [
-  { id: 'this_lunar_month', label: 'Tháng Âm này' },
-  { id: 'this_solar_month', label: 'Tháng Dương này' },
-  { id: 'this_week', label: 'Tuần này' },
-  { id: 'this_quarter', label: 'Quý này' },
-  { id: 'this_half_year', label: 'Nửa năm' },
-  { id: 'this_year', label: 'Cả năm' },
+  { id: 'this_lunar_month', label: 'Tháng Âm này', desc: 'Theo chu kỳ trăng' },
+  { id: 'this_solar_month', label: 'Tháng Dương này', desc: 'Tháng lịch chuẩn' },
+  { id: 'this_week', label: 'Tuần này', desc: '7 ngày gần nhất' },
+  { id: 'this_quarter', label: 'Quý này', desc: '3 tháng hiện tại' },
+  { id: 'this_half_year', label: 'Nửa năm', desc: '6 tháng' },
+  { id: 'this_year', label: 'Cả năm', desc: '12 tháng năm nay' },
 ];
 
 export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilterProps) {
@@ -29,9 +29,7 @@ export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilte
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
 
-  // Bắn dữ liệu mặc định lần đầu tiên Component Mount
   useEffect(() => {
-    // Prevent strictly executing if already fired or if they just didn't want it, but actually we WANT it
     const { start, end } = getDateRangeForPeriod('this_lunar_month', currentYear, specificMonth);
     setCurrentRange({ start, end });
     onFilterComplete(start, end);
@@ -61,144 +59,193 @@ export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilte
   const getFilterLabel = () => {
     if (activeFilterId === 'custom') return `Tùy chọn khoảng ngày`;
     if (activeFilterId === 'this_lunar_month') {
-        const todayLunar = Lunar.fromSolar(Solar.fromDate(new Date()));
-        return `Tháng Âm Này (Tháng ${Math.abs(todayLunar.getMonth())})`;
+      const todayLunar = Lunar.fromSolar(Solar.fromDate(new Date()));
+      return `Tháng ${Math.abs(todayLunar.getMonth())} Âm Này`;
     }
     if (activeFilterId === 'specific_solar_month') {
-        return `Tháng ${specificMonth}/${specificYear} (Dương)`;
+      return `Tháng ${specificMonth}/${specificYear} (Dương)`;
     }
     if (activeFilterId === 'specific_lunar_month') {
-        return `Tháng ${specificMonth}/${specificYear} (Âm)`;
+      return `Tháng ${specificMonth}/${specificYear} (Âm)`;
     }
     return (PREDEFINED.find(p => p.id === activeFilterId) || { label: '' }).label;
   };
 
-  // Click outside can close it or just keep it modal
   return (
-    <div className="mb-4 relative">
-      <div className="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+    <div className="relative">
+      <div 
+        onClick={() => setIsOpen(true)}
+        className="flex justify-between items-center bg-white/90 backdrop-blur-md p-3 md:p-3.5 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group"
+      >
         <div className="flex items-center gap-3">
-          <div className="bg-orange-100 p-2.5 rounded-xl">
-            <Calendar size={20} className="text-orange-600" />
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
+            <Calendar size={19} />
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-[15px] text-slate-800 leading-tight">
-              {getFilterLabel()}
-            </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-sm md:text-base text-slate-800 leading-tight">
+                {getFilterLabel()}
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                Đang lọc
+              </span>
+            </div>
             {currentRange.start && currentRange.end && (
-              <span className="text-[12px] font-semibold text-slate-500 mt-0.5">
-                {new Date(currentRange.start).toLocaleDateString('vi-VN')} - {new Date(currentRange.end).toLocaleDateString('vi-VN')} (Dương)
+              <span className="text-xs font-semibold text-slate-400 mt-0.5 block">
+                {new Date(currentRange.start).toLocaleDateString('vi-VN')} – {new Date(currentRange.end).toLocaleDateString('vi-VN')}
               </span>
             )}
           </div>
         </div>
 
         <button
-          onClick={() => setIsOpen(true)}
-          className="flex items-center justify-center p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition"
+          type="button"
+          className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 group-hover:bg-slate-200/80 rounded-2xl text-slate-700 font-bold text-xs md:text-sm transition-colors"
         >
-          <Filter size={18} />
+          <Filter size={15} />
+          <span>Đổi mốc</span>
         </button>
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[85dvh] sm:max-h-[90vh] animate-in slide-in-from-bottom">
-            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50 shrink-0 rounded-t-3xl sm:rounded-3xl">
-              <div className="flex items-center gap-2">
-                <Filter size={20} className="text-blue-600" />
-                <h3 className="font-bold text-slate-800 text-lg">Bộ Lọc Thời Gian</h3>
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[88dvh] sm:max-h-[90vh] animate-in-scale border border-slate-100">
+            {/* Header */}
+            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/80 shrink-0 rounded-t-3xl">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <Filter size={18} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-base">Bộ Lọc Thời Gian</h3>
+                  <p className="text-xs text-slate-400">Chọn khoảng thời gian tính toán thu chi</p>
+                </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-500 hover:bg-slate-300">
+              <button 
+                onClick={() => setIsOpen(false)} 
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200/70 text-slate-500 hover:bg-slate-300 transition-colors"
+              >
                 <X size={16} />
               </button>
             </div>
 
-            <div className="p-5 overflow-y-auto min-h-0 flex-1 space-y-6">
-
-              {/* Quick Preset */}
+            {/* Body */}
+            <div className="p-5 overflow-y-auto min-h-0 flex-1 space-y-6 custom-scrollbar">
+              {/* Presets */}
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Mốc Mặc Định</h4>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  {PREDEFINED.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => handleApply(p.id as typeof activeFilterId)}
-                      className={`py-3 px-3 rounded-xl text-sm font-semibold border-2 transition ${activeFilterId === p.id ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-100 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'}`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
+                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">
+                  Mốc Nhanh Tiện Lợi
+                </h4>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {PREDEFINED.map(p => {
+                    const isSelected = activeFilterId === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => handleApply(p.id as typeof activeFilterId)}
+                        className={`p-3 rounded-2xl text-left border transition-all duration-200 relative ${
+                          isSelected 
+                            ? 'border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-sm' 
+                            : 'border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/70 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className="font-bold text-sm leading-tight block">{p.label}</span>
+                          {isSelected && <Check size={16} className="text-emerald-600 shrink-0 ml-1" />}
+                        </div>
+                        <span className="text-[11px] text-slate-400 mt-0.5 block">{p.desc}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Specific Lunar/Solar Month */}
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chọn Tháng Cụ Thể (Lịch Sử)</h4>
+              {/* Specific Month & Year */}
+              <div className="bg-slate-50/80 p-4 rounded-3xl border border-slate-200/80 space-y-3">
+                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Xem Lịch Sử Tháng Cụ Thể
+                </h4>
                 <div className="flex gap-2">
-                  <div className="flex-1 relative">
+                  <div className="flex-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Tháng</label>
                     <select
                       value={specificMonth}
                       onChange={e => setSpecificMonth(Number(e.target.value))}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-semibold text-slate-700 outline-none appearance-none"
+                      className="w-full bg-white border border-slate-200 rounded-2xl p-2.5 font-bold text-slate-700 outline-none text-sm shadow-sm"
                     >
                       {[...Array(12)].map((_, i) => (
                         <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="w-28 relative">
+                  <div className="w-32">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Năm</label>
                     <select
                       value={specificYear}
                       onChange={e => setSpecificYear(Number(e.target.value))}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-semibold text-slate-700 outline-none appearance-none"
+                      className="w-full bg-white border border-slate-200 rounded-2xl p-2.5 font-bold text-slate-700 outline-none text-sm shadow-sm"
                     >
                       {[...Array(11)].map((_, i) => {
                         const y = currentYear - 5 + i;
-                        return <option key={y} value={y}>{y}</option>
+                        return <option key={y} value={y}>{y}</option>;
                       })}
                     </select>
                   </div>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => handleApply('specific_solar_month')} className="flex-1 py-3 bg-slate-800 hover:bg-slate-900 active:bg-black text-white rounded-xl font-bold text-sm transition-colors shadow-sm">Tháng Dương</button>
-                  <button onClick={() => handleApply('specific_lunar_month')} className="flex-1 py-3 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-sm transition-colors shadow-sm">Tháng Âm</button>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button 
+                    type="button"
+                    onClick={() => handleApply('specific_solar_month')} 
+                    className="py-2.5 bg-slate-800 hover:bg-slate-900 active:scale-98 text-white rounded-2xl font-bold text-xs md:text-sm transition-all shadow-sm"
+                  >
+                    Xem Tháng Dương
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => handleApply('specific_lunar_month')} 
+                    className="py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white rounded-2xl font-bold text-xs md:text-sm transition-all shadow-sm"
+                  >
+                    Xem Tháng Âm
+                  </button>
                 </div>
               </div>
 
-              {/* Custom Date Array */}
-              <div className="pb-6">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Tùy Chọn Khoảng Ngày Tự Do</h4>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <div className="flex-1 flex flex-col">
-                    <label className="text-[10px] font-bold text-slate-500 mb-1 ml-1">Từ ngày</label>
+              {/* Custom Date Range */}
+              <div className="space-y-3 pb-4">
+                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Tùy Chọn Khoảng Ngày Tự Do
+                </h4>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="flex flex-col">
+                    <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Từ ngày</label>
                     <input
                       type="date"
                       value={customStart}
                       onChange={e => setCustomStart(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none font-semibold text-sm w-full"
+                      className="bg-slate-50 border border-slate-200 rounded-2xl p-2.5 outline-none font-semibold text-xs md:text-sm"
                     />
                   </div>
-                  <div className="flex-1 flex flex-col">
-                    <label className="text-[10px] font-bold text-slate-500 mb-1 ml-1">Đến ngày</label>
+                  <div className="flex flex-col">
+                    <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Đến ngày</label>
                     <input
                       type="date"
                       value={customEnd}
                       min={customStart}
                       onChange={e => setCustomEnd(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none font-semibold text-sm w-full"
+                      className="bg-slate-50 border border-slate-200 rounded-2xl p-2.5 outline-none font-semibold text-xs md:text-sm"
                     />
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleApply('custom')}
                   disabled={!customStart || !customEnd}
-                  className="w-full mt-4 py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 disabled:text-slate-500 text-white rounded-xl font-bold transition-colors shadow-sm"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-2xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20"
                 >
-                  Áp Dụng Khoảng Ngày Này
+                  Áp Dụng Khoảng Ngày Tự Chọn
                 </button>
               </div>
-
             </div>
           </div>
         </div>

@@ -8,10 +8,11 @@ import ExpenseForm from '../components/expense/ExpenseForm';
 import ExpenseList from '../components/expense/ExpenseList';
 import FinanceDateFilter from '../components/finance/FinanceDateFilter';
 import { Income, Expense } from '../types';
+import { Plus, ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 
 export default function FinancePage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'income'; // 'income' | 'expense'
+  const currentTab = searchParams.get('tab') || 'income';
   
   const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
   
@@ -34,7 +35,6 @@ export default function FinancePage() {
   }, [currentTab, fetchIncomes, fetchExpenses, dateRange.start, dateRange.end]);
 
   useEffect(() => {
-    // Switch tab -> hide form
     setIsFormVisible(false);
     setEditingIncome(null);
     setEditingExpense(null);
@@ -87,89 +87,139 @@ export default function FinancePage() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
-      
-      {/* Global Date Filter for Finance Page */}
-      <FinanceDateFilter onFilterComplete={(start, end) => setDateRange({start, end})} />
+    <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto pb-10">
+      {/* Date Filter */}
+      <FinanceDateFilter onFilterComplete={(start, end) => setDateRange({ start, end })} />
 
-      {/* Tabs */}
-      <div className="flex bg-slate-200/50 p-1 rounded-2xl w-full">
+      {/* Segmented Tab Switcher */}
+      <div className="bg-slate-200/70 p-1.5 rounded-3xl flex items-center shadow-inner">
         <button
           onClick={() => setSearchParams({ tab: 'income' })}
-          className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-sm transition-all ${
-            currentTab === 'income' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500'
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-extrabold text-sm md:text-base transition-all duration-200 ${
+            currentTab === 'income' 
+              ? 'bg-white text-emerald-700 shadow-md scale-[1.01]' 
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          💰 Thu Nhập
+          <ArrowDownLeft size={18} className={currentTab === 'income' ? 'text-emerald-600' : 'text-slate-400'} />
+          <span>Sổ Thu Nhập</span>
+          <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ml-1 ${
+            currentTab === 'income' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/50 text-slate-500'
+          }`}>
+            {incomes.length}
+          </span>
         </button>
+
         <button
           onClick={() => setSearchParams({ tab: 'expense' })}
-          className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-sm transition-all ${
-            currentTab === 'expense' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-500'
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-extrabold text-sm md:text-base transition-all duration-200 ${
+            currentTab === 'expense' 
+              ? 'bg-white text-rose-600 shadow-md scale-[1.01]' 
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          💳 Chi Tiêu
+          <ArrowUpRight size={18} className={currentTab === 'expense' ? 'text-rose-600' : 'text-slate-400'} />
+          <span>Sổ Chi Tiêu</span>
+          <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ml-1 ${
+            currentTab === 'expense' ? 'bg-rose-100 text-rose-800' : 'bg-slate-300/50 text-slate-500'
+          }`}>
+            {expenses.length}
+          </span>
         </button>
       </div>
 
+      {/* Form Card (Expandable) */}
+      {isFormVisible && (
+        <div className="bg-white rounded-3xl p-5 md:p-6 border border-slate-200/80 shadow-xl animate-in-scale">
+          <div className="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+            <h3 className="font-black text-slate-800 text-lg">
+              {currentTab === 'income' 
+                ? (editingIncome ? 'Chỉnh Sửa Khoản Thu Nhập' : 'Thêm Khoản Thu Nhập Mới')
+                : (editingExpense ? 'Chỉnh Sửa Khoản Chi Tiêu' : 'Thêm Khoản Chi Tiêu Mới')
+              }
+            </h3>
+            <button
+              onClick={() => {
+                setIsFormVisible(false);
+                setEditingIncome(null);
+                setEditingExpense(null);
+              }}
+              className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {currentTab === 'income' ? (
+            <IncomeForm 
+              onSubmit={handleIncomeSubmit} 
+              initialData={editingIncome ? {
+                amount: editingIncome.amount,
+                person: editingIncome.person,
+                date: editingIncome.date.split('T')[0],
+                note: editingIncome.note || ''
+              } : undefined}
+              onCancel={() => {
+                setIsFormVisible(false);
+                setEditingIncome(null);
+              }}
+            />
+          ) : (
+            <ExpenseForm 
+              onSubmit={handleExpenseSubmit} 
+              initialData={editingExpense ? {
+                amount: editingExpense.amount,
+                category: editingExpense.category,
+                date: editingExpense.date.split('T')[0],
+                note: editingExpense.note || ''
+              } : undefined}
+              onCancel={() => {
+                setIsFormVisible(false);
+                setEditingExpense(null);
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Tab: Thu Nhập */}
       {currentTab === 'income' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-800">Quản Lý Thu Nhập</h2>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase">Lọc theo:</span>
+              <div className="flex gap-1.5">
+                {[
+                  { id: 'all', label: 'Tất cả' },
+                  { id: 'bo', label: '👨 Bố' },
+                  { id: 'me', label: '👩 Mẹ' }
+                ].map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setFilterPerson(f.id as any)}
+                    className={`px-3 py-1.5 rounded-2xl text-xs font-bold transition-all ${
+                      filterPerson === f.id
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {!isFormVisible && (
               <button 
                 onClick={() => {
                   setEditingIncome(null);
                   setIsFormVisible(true);
                 }}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 md:py-3 px-4 md:px-6 rounded-xl transition-colors text-base md:text-lg hidden sm:block"
+                className="hidden sm:inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs md:text-sm py-2.5 px-4 rounded-2xl transition-all shadow-md shadow-emerald-600/20 active:scale-95"
               >
-                + Thêm Giao Dịch
+                <Plus size={16} /> Thêm Thu Nhập
               </button>
             )}
-          </div>
-
-          {/* Form Income */}
-          {isFormVisible && (
-            <div className="mb-8">
-              <IncomeForm 
-                onSubmit={handleIncomeSubmit} 
-                initialData={editingIncome ? {
-                  amount: editingIncome.amount,
-                  person: editingIncome.person,
-                  date: editingIncome.date.split('T')[0],
-                  note: editingIncome.note || ''
-                } : undefined}
-                onCancel={() => {
-                  setIsFormVisible(false);
-                  setEditingIncome(null);
-                }}
-              />
-            </div>
-          )}
-
-          {/* Filter */}
-          <div className="flex flex-wrap gap-2 md:gap-4 items-center">
-            <span className="text-slate-500 font-medium">Lọc theo:</span>
-            <div className="flex gap-2">
-              {[
-                { id: 'all', label: 'Tất cả' },
-                { id: 'bo', label: '👨 Bố' },
-                { id: 'me', label: '👩 Mẹ' }
-              ].map(f => (
-                <button
-                  key={f.id}
-                  onClick={() => setFilterPerson(f.id as any)}
-                  className={`px-4 py-2 rounded-xl text-sm md:text-base font-semibold transition-colors border-2 ${
-                    filterPerson === f.id
-                      ? 'border-green-600 bg-green-50 text-green-700'
-                      : 'border-slate-200 text-slate-500 hover:bg-slate-50'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           <IncomeList 
@@ -182,62 +232,42 @@ export default function FinancePage() {
         </div>
       )}
 
+      {/* Tab: Chi Tiêu */}
       {currentTab === 'expense' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-800">Quản Lý Chi Tiêu</h2>
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase">Danh mục:</span>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="px-3 py-1.5 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-xs shadow-sm outline-none focus:ring-2 focus:ring-rose-500/20"
+              >
+                <option value="all">Tất cả danh mục</option>
+                <option value="an_uong">🍜 Ăn uống</option>
+                <option value="tien_dien">⚡ Tiền điện</option>
+                <option value="tien_nuoc">💧 Tiền nước</option>
+                <option value="tien_nha">🏠 Tiền nhà</option>
+                <option value="tien_xang">⛽ Tiền xăng</option>
+                <option value="mua_sam">🛍️ Mua sắm</option>
+                <option value="hieu_hi_dam">🎊 Hiếu hỉ</option>
+                <option value="xe_co">🚗 Xe cộ</option>
+                <option value="vay_no">💳 Vay nợ</option>
+                <option value="khac">📦 Khác</option>
+              </select>
+            </div>
+
             {!isFormVisible && (
               <button 
                 onClick={() => {
                   setEditingExpense(null);
                   setIsFormVisible(true);
                 }}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 md:py-3 px-4 md:px-6 rounded-xl transition-colors text-base md:text-lg hidden sm:block"
+                className="hidden sm:inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs md:text-sm py-2.5 px-4 rounded-2xl transition-all shadow-md shadow-rose-600/20 active:scale-95"
               >
-                + Thêm Chi Tiêu
+                <Plus size={16} /> Thêm Chi Tiêu
               </button>
             )}
-          </div>
-
-          {/* Form Expense */}
-          {isFormVisible && (
-            <div className="mb-8">
-              <ExpenseForm 
-                onSubmit={handleExpenseSubmit} 
-                initialData={editingExpense ? {
-                  amount: editingExpense.amount,
-                  category: editingExpense.category,
-                  date: editingExpense.date.split('T')[0],
-                  note: editingExpense.note || ''
-                } : undefined}
-                onCancel={() => {
-                  setIsFormVisible(false);
-                  setEditingExpense(null);
-                }}
-              />
-            </div>
-          )}
-
-          {/* Filter Expense Categories */}
-          <div className="flex flex-wrap gap-2 md:gap-4 items-center mb-2">
-            <span className="text-slate-500 font-medium">Lọc danh mục:</span>
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-4 py-2 md:py-3 rounded-xl border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500 font-medium min-w-[150px]"
-            >
-              <option value="all">Tất cả danh mục</option>
-              <option value="an_uong">🍜 Ăn uống</option>
-              <option value="tien_dien">⚡ Tiền điện</option>
-              <option value="tien_nuoc">💧 Tiền nước</option>
-              <option value="tien_nha">🏠 Tiền nhà</option>
-              <option value="tien_xang">⛽ Tiền xăng</option>
-              <option value="mua_sam">🛍️ Mua sắm</option>
-              <option value="hieu_hi_dam">🎊 Hiếu hỉ - Đám</option>
-              <option value="xe_co">🚗 Xe cộ</option>
-              <option value="vay_no">💳 Vay nợ</option>
-              <option value="khac">📦 Khác</option>
-            </select>
           </div>
 
           <ExpenseList 
@@ -250,24 +280,25 @@ export default function FinancePage() {
         </div>
       )}
 
-      {/* Mobile floating button */}
+      {/* Floating Action Button on Mobile */}
       {!isFormVisible && (
         <button
           onClick={() => {
             if (currentTab === 'income') setEditingIncome(null);
             else setEditingExpense(null);
-            
             setIsFormVisible(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className={`sm:hidden fixed bottom-[5.5rem] right-4 w-12 h-12 text-white rounded-full flex items-center justify-center shadow-lg text-2xl pb-0.5 z-40 ${
-            currentTab === 'income' ? 'bg-green-600 active:bg-green-800' : 'bg-red-600 active:bg-red-800'
+          className={`sm:hidden fixed bottom-20 right-4 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl z-40 active:scale-90 transition-all ${
+            currentTab === 'income' 
+              ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 glow-emerald' 
+              : 'bg-gradient-to-tr from-rose-600 to-red-500 glow-rose'
           }`}
+          title="Thêm Giao Dịch"
         >
-          +
+          <Plus size={26} strokeWidth={2.5} />
         </button>
       )}
-
     </div>
   );
 }

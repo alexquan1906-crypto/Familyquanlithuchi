@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowDownCircle, ArrowUpCircle, Wallet, TrendingUp, PlusCircle, MinusCircle, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Wallet, TrendingUp, PlusCircle, MinusCircle, X } from 'lucide-react';
 import SummaryCard from '../components/stats/SummaryCard';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import FinanceDateFilter from '../components/finance/FinanceDateFilter';
@@ -18,7 +18,6 @@ export default function Dashboard() {
 
   const [modalType, setModalType] = useState<'none' | 'income' | 'expense'>('none');
 
-  // When date changes, refresh stats
   useEffect(() => {
     fetchStats(dateRange.start, dateRange.end);
   }, [dateRange.start, dateRange.end, fetchStats]);
@@ -27,7 +26,7 @@ export default function Dashboard() {
     const success = await addIncome(data);
     if (success) {
       setModalType('none');
-      fetchStats(dateRange.start, dateRange.end); // Refresh
+      fetchStats(dateRange.start, dateRange.end);
     }
     return success;
   };
@@ -36,95 +35,119 @@ export default function Dashboard() {
     const success = await addExpense(data);
     if (success) {
       setModalType('none');
-      fetchStats(dateRange.start, dateRange.end); // Refresh
+      fetchStats(dateRange.start, dateRange.end);
     }
     return success;
   };
 
-  if (loading && totalIncome === 0) {
+  const daysCount = Math.max(1, Math.round(
+    ((new Date(dateRange.end || new Date()).getTime() -
+      new Date(dateRange.start || new Date(new Date().getFullYear(), new Date().getMonth(), 1)).getTime())
+      / (1000 * 3600 * 24))
+  ));
+  const dailyAverage = Math.round(totalExpense / daysCount) || 0;
+
+  if (loading && totalIncome === 0 && totalExpense === 0) {
     return (
-      <div className="grid grid-cols-2 gap-3 animate-pulse">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl h-24 border border-slate-200"></div>
-        ))}
+      <div className="space-y-4 animate-pulse">
+        <div className="h-14 bg-slate-200/80 rounded-3xl"></div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white rounded-3xl h-28 border border-slate-200"></div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Quick Action Buttons */}
-      <div className="flex gap-3">
+    <div className="space-y-4 md:space-y-6 max-w-5xl mx-auto">
+      {/* Quick Action Gradient Buttons */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
         <button
           onClick={() => setModalType('income')}
-          className="flex-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-2xl p-3 flex items-center justify-center gap-2 transition-colors min-h-[56px]"
+          className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-[0.98] text-white rounded-3xl p-3.5 md:p-4 flex items-center justify-center gap-2.5 transition-all duration-200 glow-emerald shadow-lg min-h-[56px]"
         >
-          <PlusCircle size={22} />
-          <span className="font-bold text-base">Thu Nhập</span>
+          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <PlusCircle size={20} className="text-white" />
+          </div>
+          <div className="text-left">
+            <span className="block font-black text-sm md:text-base leading-tight">Thu Nhập</span>
+            <span className="block text-[10px] md:text-xs text-emerald-100 font-medium"></span>
+          </div>
         </button>
+
         <button
           onClick={() => setModalType('expense')}
-          className="flex-1 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-2xl p-3 flex items-center justify-center gap-2 transition-colors min-h-[56px]"
+          className="group relative overflow-hidden bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 active:scale-[0.98] text-white rounded-3xl p-3.5 md:p-4 flex items-center justify-center gap-2.5 transition-all duration-200 glow-rose shadow-lg min-h-[56px]"
         >
-          <MinusCircle size={22} />
-          <span className="font-bold text-base">Chi Tiêu</span>
+          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <MinusCircle size={20} className="text-white" />
+          </div>
+          <div className="text-left">
+            <span className="block font-black text-sm md:text-base leading-tight">Chi Tiêu</span>
+            <span className="block text-[10px] md:text-xs text-rose-100 font-medium"></span>
+          </div>
         </button>
       </div>
 
       {/* Date Filter */}
       <FinanceDateFilter onFilterComplete={(start, end) => setDateRange({ start, end })} />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Summary KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <SummaryCard
-          title="Tổng Thu"
+          title="Tổng Thu Nhập"
           amount={totalIncome}
-          icon={<ArrowDownCircle size={18} className="text-green-500" />}
+          icon={<ArrowDownLeft size={18} />}
           trend={incomeTrend}
-          colorClass="text-green-600"
+          variant="income"
         />
         <SummaryCard
-          title="Tổng Chi"
+          title="Tổng Chi Tiêu"
           amount={totalExpense}
-          icon={<ArrowUpCircle size={18} className="text-red-500" />}
+          icon={<ArrowUpRight size={18} />}
           trend={expenseTrend}
-          colorClass="text-red-500"
+          variant="expense"
         />
         <SummaryCard
-          title="Lợi nhuận"
+          title="Dư Còn Lại"
           amount={balance}
-          icon={<Wallet size={18} className="text-blue-500" />}
-          colorClass="text-blue-600"
+          icon={<Wallet size={18} />}
+          variant="balance"
         />
         <SummaryCard
-          title="TB/Ngày"
-          amount={Math.round(totalExpense / ((new Date(dateRange.end || new Date()).getTime() - new Date(dateRange.start || new Date(new Date().getFullYear(), new Date().getMonth(), 1)).getTime()) / (1000 * 3600 * 24)) || 1) || 0}
-          icon={<TrendingUp size={18} className="text-orange-500" />}
-          colorClass="text-slate-800"
+          title="Trung Bình / Ngày"
+          amount={dailyAverage}
+          icon={<TrendingUp size={18} />}
+          variant="average"
         />
       </div>
 
       {/* Daily Breakdown */}
-      <div className="pt-4">
+      <div className="pt-2">
         <DailyBreakdown transactions={rawTransactions || []} />
       </div>
 
-      {/* Modals Overlay */}
+      {/* Form Modals Overlay */}
       {modalType !== 'none' && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto sm:p-6 p-4 flex items-start sm:items-center justify-center pb-20">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative flex flex-col my-auto mt-8 sm:mt-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md overflow-y-auto sm:p-6 p-3 flex items-center justify-center">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative flex flex-col my-auto border border-slate-100 animate-in-scale">
             <div className="flex justify-between items-center p-5 border-b border-slate-100 shrink-0 sticky top-0 bg-white rounded-t-3xl z-10">
-              <h2 className={`text-xl font-black ${modalType === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                {modalType === 'income' ? 'Thêm Thu Nhập Mới' : 'Nhập Khoản Chi Tiêu'}
-              </h2>
+              <div className="flex items-center gap-2.5">
+                <div className={`w-3 h-3 rounded-full ${modalType === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                <h2 className={`text-lg md:text-xl font-black ${modalType === 'income' ? 'text-emerald-700' : 'text-rose-600'}`}>
+                  {modalType === 'income' ? 'Thêm Khoản Thu Nhập' : 'Thêm Khoản Chi Tiêu'}
+                </h2>
+              </div>
               <button
                 onClick={() => setModalType('none')}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
-            <div className="p-1 sm:p-5 mb-5">
+            <div className="p-4 sm:p-6">
               {modalType === 'income' && <IncomeForm onSubmit={handleIncomeSubmit} onCancel={() => setModalType('none')} />}
               {modalType === 'expense' && <ExpenseForm onSubmit={handleExpenseSubmit} onCancel={() => setModalType('none')} />}
             </div>

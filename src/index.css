@@ -1,14 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Be Vietnam Pro", sans-serif;
-  --color-income: #16a34a;
-  --color-expense: #dc2626;
-  --color-primary: #0ea5e9;
+  --font-sans: "Plus Jakarta Sans", "Be Vietnam Pro", system-ui, sans-serif;
+  --color-income: #10b981;
+  --color-income-hover: #059669;
+  --color-expense: #f43f5e;
+  --color-expense-hover: #e11d48;
+  --color-primary: #0284c7;
+  --color-primary-hover: #0369a1;
+  --color-lunar: #d97706;
 }
 
-/* ===== Mobile Web App Base ===== */
+/* ===== Ambient Background & Mobile App Base ===== */
 html {
   height: -webkit-fill-available;
   scroll-behavior: smooth;
@@ -17,23 +21,26 @@ html {
 }
 
 body {
-  background-color: var(--color-slate-50);
-  color: var(--color-slate-900);
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.04) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(2, 132, 199, 0.04) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(244, 63, 94, 0.02) 0px, transparent 50%);
+  color: #0f172a;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   min-height: -webkit-fill-available;
   overscroll-behavior-y: none;
   touch-action: manipulation;
 }
 
-/* Fix viewport height on mobile browsers */
 #root {
   min-height: 100vh;
   min-height: 100dvh;
 }
 
-/* Smooth scrolling for all scrollable elements */
 * {
   -webkit-overflow-scrolling: touch;
 }
@@ -50,6 +57,41 @@ input[type="number"] {
   appearance: textfield;
 }
 
+/* Modern Glass & Card Effects */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+/* Subtle Shimmer / Glow effects */
+.glow-emerald {
+  box-shadow: 0 8px 25px -4px rgba(16, 185, 129, 0.25);
+}
+
+.glow-rose {
+  box-shadow: 0 8px 25px -4px rgba(244, 63, 94, 0.25);
+}
+
+.glow-blue {
+  box-shadow: 0 8px 25px -4px rgba(2, 132, 199, 0.25);
+}
+
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -59,7 +101,39 @@ input[type="number"] {
   scrollbar-width: none;
 }
 
+/* Custom Slim Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
 /* Safe area padding for bottom nav on notched phones */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Keyframes for subtle entrance animation */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-in-scale {
+  animation: fadeInScale 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -5,7 +5,6 @@ import FinancePage from './pages/FinancePage';
 import StatsPage from './pages/StatsPage';
 import CalendarPage from './pages/CalendarPage';
 import TasksPage from './pages/TasksPage';
-import AIChatPage from './pages/AIChatPage';
 import AuthPage from './pages/AuthPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -22,7 +21,6 @@ function App() {
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/ai-chat" element={<AIChatPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Route>

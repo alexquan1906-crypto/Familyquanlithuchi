@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Lunar } from 'lunar-javascript';
 import { getLunarDateMock } from '../../lib/lunar';
+import { Sun, Moon } from 'lucide-react';
 
 interface Props {
   value: string;
@@ -12,22 +13,19 @@ interface Props {
 export default function LunarSolarDatePicker({ value, onChange, error, focusColor = 'green' }: Props) {
   const [mode, setMode] = useState<'solar' | 'lunar'>('solar');
 
-  // Lunar states
   const [lDay, setLDay] = useState(1);
   const [lMonth, setLMonth] = useState(1);
   const [lYear, setLYear] = useState(new Date().getFullYear());
 
-  // Sync internal lunar state when value (solar date) changes from outside
-  // Only sync if mode is solar to avoid overriding user's typing in lunar mode
   useEffect(() => {
     if (value && mode === 'solar') {
       try {
         const d = new Date(value);
         if (!isNaN(d.getTime())) {
-            const lInfo = getLunarDateMock(d);
-            setLDay(lInfo.day);
-            setLMonth(lInfo.month);
-            setLYear(lInfo.year);
+          const lInfo = getLunarDateMock(d);
+          setLDay(lInfo.day);
+          setLMonth(lInfo.month);
+          setLYear(lInfo.year);
         }
       } catch (e) {}
     }
@@ -45,31 +43,44 @@ export default function LunarSolarDatePicker({ value, onChange, error, focusColo
         onChange(iso);
       }
     } catch (e) {
-      // Invalid date, do not sync back to solar
+      // Invalid date
     }
   };
 
   const dObj = value ? new Date(value) : new Date();
   const lInfo = getLunarDateMock(isNaN(dObj.getTime()) ? new Date() : dObj);
   
-  const focusClass = focusColor === 'red' ? 'focus:ring-red-500' : 'focus:ring-green-500';
+  const focusRing = focusColor === 'red' 
+    ? 'focus:ring-2 focus:ring-rose-500 focus:border-rose-500' 
+    : 'focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500';
 
   return (
-    <div>
-      <div className="flex gap-3 mb-2">
+    <div className="space-y-2">
+      {/* Mode Switcher */}
+      <div className="flex bg-slate-100/80 p-1 rounded-2xl">
         <button 
-            type="button" 
-            onClick={() => setMode('solar')} 
-            className={`flex-1 text-sm py-2 rounded-xl font-bold transition-colors ${mode === 'solar' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
+          type="button" 
+          onClick={() => setMode('solar')} 
+          className={`flex-1 flex items-center justify-center gap-1.5 text-xs md:text-sm py-2 rounded-xl font-bold transition-all duration-200 ${
+            mode === 'solar' 
+              ? 'bg-white text-sky-700 shadow-sm' 
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
         >
-            🌞 Dương Lịch
+          <Sun size={15} className={mode === 'solar' ? 'text-amber-500' : 'text-slate-400'} />
+          Dương Lịch
         </button>
         <button 
-            type="button" 
-            onClick={() => setMode('lunar')} 
-            className={`flex-1 text-sm py-2 rounded-xl font-bold transition-colors ${mode === 'lunar' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
+          type="button" 
+          onClick={() => setMode('lunar')} 
+          className={`flex-1 flex items-center justify-center gap-1.5 text-xs md:text-sm py-2 rounded-xl font-bold transition-all duration-200 ${
+            mode === 'lunar' 
+              ? 'bg-white text-amber-700 shadow-sm' 
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
         >
-            🌙 Âm Lịch
+          <Moon size={14} className={mode === 'lunar' ? 'text-amber-600' : 'text-slate-400'} />
+          Âm Lịch
         </button>
       </div>
 
@@ -79,55 +90,57 @@ export default function LunarSolarDatePicker({ value, onChange, error, focusColo
             type="date"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className={`w-full min-h-[56px] text-lg px-4 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none transition-colors ${focusClass}`}
+            className={`w-full min-h-[50px] text-base font-semibold px-4 border border-slate-200 rounded-2xl bg-slate-50/50 outline-none transition-all ${focusRing}`}
           />
-          <p className="text-sm text-amber-600 mt-2 font-semibold">
-            ↳ Ngày Âm: {lInfo.day}/{lInfo.month}/{lInfo.year} ({lInfo.canChi})
-          </p>
+          <div className="mt-1.5 flex items-center gap-1 text-xs text-amber-700 bg-amber-50/80 px-2.5 py-1 rounded-xl border border-amber-200/50 w-fit">
+            <Moon size={12} className="text-amber-600 shrink-0" />
+            <span className="font-semibold">Ngày Âm:</span> {lInfo.day}/{lInfo.month}/{lInfo.year} ({lInfo.canChi})
+          </div>
         </div>
       ) : (
-        <div>
-            <div className="flex gap-2">
-            <div className="flex-[0.8] flex flex-col">
-                <label className="text-[10px] font-bold text-slate-500 mb-1 ml-1 uppercase">Ngày Âm</label>
-                <input 
-                    type="number" 
-                    min={1} 
-                    max={30} 
-                    value={lDay || ''} 
-                    onChange={e => handleLunarChange(Number(e.target.value), lMonth, lYear)} 
-                    className={`w-full min-h-[56px] text-center text-lg font-bold px-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none transition-colors ${focusClass}`} 
-                />
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col">
+              <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Ngày Âm</label>
+              <input 
+                type="number" 
+                min={1} 
+                max={30} 
+                value={lDay || ''} 
+                onChange={e => handleLunarChange(Number(e.target.value), lMonth, lYear)} 
+                className={`w-full min-h-[50px] text-center text-base font-bold border border-slate-200 rounded-2xl bg-slate-50/50 outline-none transition-all ${focusRing}`} 
+              />
             </div>
-            <div className="flex-[0.8] flex flex-col">
-                <label className="text-[10px] font-bold text-slate-500 mb-1 ml-1 uppercase">Tháng Âm</label>
-                <input 
-                    type="number" 
-                    min={1} 
-                    max={12} 
-                    value={lMonth || ''} 
-                    onChange={e => handleLunarChange(lDay, Number(e.target.value), lYear)} 
-                    className={`w-full min-h-[56px] text-center text-lg font-bold px-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none transition-colors ${focusClass}`} 
-                />
+            <div className="flex flex-col">
+              <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Tháng Âm</label>
+              <input 
+                type="number" 
+                min={1} 
+                max={12} 
+                value={lMonth || ''} 
+                onChange={e => handleLunarChange(lDay, Number(e.target.value), lYear)} 
+                className={`w-full min-h-[50px] text-center text-base font-bold border border-slate-200 rounded-2xl bg-slate-50/50 outline-none transition-all ${focusRing}`} 
+              />
             </div>
-            <div className="flex-1 flex flex-col">
-                <label className="text-[10px] font-bold text-slate-500 mb-1 ml-1 uppercase">Năm Âm</label>
-                <input 
-                    type="number" 
-                    value={lYear || ''} 
-                    onChange={e => handleLunarChange(lDay, lMonth, Number(e.target.value))} 
-                    className={`w-full min-h-[56px] text-center text-lg font-bold px-2 border border-slate-300 rounded-xl focus:ring-2 focus:outline-none transition-colors ${focusClass}`} 
-                />
+            <div className="flex flex-col">
+              <label className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">Năm Âm</label>
+              <input 
+                type="number" 
+                value={lYear || ''} 
+                onChange={e => handleLunarChange(lDay, lMonth, Number(e.target.value))} 
+                className={`w-full min-h-[50px] text-center text-base font-bold border border-slate-200 rounded-2xl bg-slate-50/50 outline-none transition-all ${focusRing}`} 
+              />
             </div>
+          </div>
+          {!isNaN(dObj.getTime()) && (
+            <div className="flex items-center gap-1 text-xs text-sky-700 bg-sky-50/80 px-2.5 py-1 rounded-xl border border-sky-200/50 w-fit">
+              <Sun size={12} className="text-amber-500 shrink-0" />
+              <span className="font-semibold">Tương ứng Dương lịch:</span> {dObj.toLocaleDateString('vi-VN')}
             </div>
-            {!isNaN(dObj.getTime()) && (
-                <p className="text-sm text-blue-600 mt-2 font-semibold">
-                ↳ Ngày Dương: {dObj.toLocaleDateString('vi-VN')}
-                </p>
-            )}
+          )}
         </div>
       )}
-      {error && <p className="text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-rose-500 text-xs mt-1 font-semibold">{error}</p>}
     </div>
   );
 }

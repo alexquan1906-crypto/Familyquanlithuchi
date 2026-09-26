@@ -10,24 +10,30 @@ interface Props {
 
 export default function CalendarGrid({ month, year, transactionsByDate, onDayClick, selectedDateStr }: Props) {
   const getDaysInMonth = (m: number, y: number) => new Date(y, m, 0).getDate();
-  const getFirstDayOfMonth = (m: number, y: number) => new Date(y, m - 1, 1).getDay(); // 0 is Sunday
+  const getFirstDayOfMonth = (m: number, y: number) => new Date(y, m - 1, 1).getDay();
 
   const daysInMonth = getDaysInMonth(month, year);
-  // Adjust to make Monday the first day of the week (0 = Monday, 6 = Sunday)
   let firstDayIndex = getFirstDayOfMonth(month, year) - 1;
-  if (firstDayIndex === -1) firstDayIndex = 6; // Sunday becomes 6
+  if (firstDayIndex === -1) firstDayIndex = 6;
 
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const blanks = Array.from({ length: firstDayIndex }, (_, i) => i);
 
   const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+  const today = new Date();
+  const isCurrentMonth = today.getMonth() + 1 === month && today.getFullYear() === year;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-sm">
       {/* Header Ngày Trong Tuần */}
-      <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
-        {WEEKDAYS.map(day => (
-          <div key={day} className="py-3 text-center text-slate-500 font-bold text-sm md:text-base">
+      <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/70">
+        {WEEKDAYS.map((day, idx) => (
+          <div 
+            key={day} 
+            className={`py-3 text-center font-bold text-xs md:text-sm uppercase tracking-wider ${
+              idx === 6 ? 'text-rose-500' : 'text-slate-400'
+            }`}
+          >
             {day}
           </div>
         ))}
@@ -36,35 +42,44 @@ export default function CalendarGrid({ month, year, transactionsByDate, onDayCli
       {/* Grid Ngày */}
       <div className="grid grid-cols-7">
         {blanks.map(blank => (
-          <div key={`blank-${blank}`} className="p-2 md:p-4 min-h-[80px] md:min-h-[100px] border-b border-r border-slate-100 bg-slate-50/50"></div>
+          <div key={`blank-${blank}`} className="p-2 md:p-3 min-h-[64px] md:min-h-[88px] border-b border-r border-slate-100/70 bg-slate-50/30"></div>
         ))}
         
         {days.map(day => {
           const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const data = transactionsByDate[dateStr];
           const isSelected = selectedDateStr === dateStr;
+          const isToday = isCurrentMonth && today.getDate() === day;
           
           return (
             <div 
               key={day} 
               onClick={() => onDayClick(dateStr, data || null)}
-              className={`p-2 border-b border-r border-slate-100 min-h-[80px] md:min-h-[100px] relative cursor-pointer hover:bg-green-50/30 transition-colors ${
-                isSelected ? 'bg-green-50 border-green-200' : ''
+              className={`p-1.5 md:p-2.5 border-b border-r border-slate-100 min-h-[64px] md:min-h-[88px] relative cursor-pointer transition-all duration-200 flex flex-col items-center justify-between ${
+                isSelected 
+                  ? 'bg-emerald-50/80 border-emerald-400 z-10 shadow-sm' 
+                  : 'hover:bg-slate-50/80'
               }`}
             >
-              <div className={`text-base md:text-lg font-semibold w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full ${
-                isSelected ? 'bg-green-600 text-white' : 'text-slate-700'
+              <div className={`text-xs md:text-sm font-extrabold w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-xl transition-all ${
+                isSelected 
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
+                  : isToday 
+                    ? 'bg-slate-800 text-white' 
+                    : 'text-slate-700'
               }`}>
                 {day}
               </div>
 
-              {/* Dots */}
-              {(data?.hasIncome || data?.hasExpense) && (
-                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
-                  {data.hasIncome && <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-500 shadow-sm"></div>}
-                  {data.hasExpense && <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500 shadow-sm"></div>}
-                </div>
-              )}
+              {/* Dots indicating Income / Expense */}
+              <div className="flex items-center justify-center gap-1.5 pb-1">
+                {data?.hasIncome && (
+                  <span className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-emerald-500 shadow-sm ring-1 ring-white" title="Có thu nhập"></span>
+                )}
+                {data?.hasExpense && (
+                  <span className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-rose-500 shadow-sm ring-1 ring-white" title="Có chi tiêu"></span>
+                )}
+              </div>
             </div>
           );
         })}

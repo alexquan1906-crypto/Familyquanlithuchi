@@ -1,18 +1,18 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Wallet, PieChart, CalendarDays, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Wallet, PieChart, Calendar, CalendarDays } from 'lucide-react';
 
 const navItems = [
-  { path: '/', icon: Home, label: 'Tổng quan' },
+  { path: '/', icon: LayoutDashboard, label: 'Tổng quan' },
   { path: '/finance', icon: Wallet, label: 'Thu Chi' },
   { path: '/stats', icon: PieChart, label: 'Thống kê' },
-  { path: '/tasks', icon: CalendarDays, label: 'Lịch Âm Dương' },
-  { path: '/ai-chat', icon: MessageSquare, label: 'Trợ lý AI' },
+  { path: '/calendar', icon: Calendar, label: 'Lịch' },
+  { path: '/tasks', icon: CalendarDays, label: 'Âm Dương' },
 ];
 
 export default function BottomNav() {
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-area-bottom z-50">
-      <div className="flex justify-around items-stretch h-16 max-w-lg mx-auto">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-nav safe-area-bottom z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+      <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -20,21 +20,28 @@ export default function BottomNav() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+                `flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 relative ${
                   isActive 
-                    ? 'text-green-600' 
-                    : 'text-slate-400 active:text-slate-600'
+                    ? 'text-emerald-600 scale-105' 
+                    : 'text-slate-400 hover:text-slate-600 active:scale-95'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <div className={`p-1 rounded-xl transition-colors ${isActive ? 'bg-green-50' : ''}`}>
-                    <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+                  <div className={`p-1.5 rounded-2xl transition-all duration-200 ${
+                    isActive ? 'bg-emerald-50 text-emerald-600' : ''
+                  }`}>
+                    <Icon size={21} strokeWidth={isActive ? 2.5 : 1.8} />
                   </div>
-                  <span className={`text-[10px] mt-0.5 leading-tight ${isActive ? 'font-bold' : 'font-medium'}`}>
+                  <span className={`text-[10px] mt-0.5 tracking-tight ${
+                    isActive ? 'font-extrabold text-emerald-700' : 'font-medium'
+                  }`}>
                     {item.label}
                   </span>
+                  {isActive && (
+                    <span className="w-1 h-1 bg-emerald-600 rounded-full mt-0.5 animate-pulse"></span>
+                  )}
                 </>
               )}
             </NavLink>

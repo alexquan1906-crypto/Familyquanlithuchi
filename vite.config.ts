@@ -5,17 +5,25 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: true, // Lắng nghe trên 0.0.0.0 để điện thoại cùng mạng Wi-Fi truy cập được
+    port: 5173,
+    cors: true,
+  },
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['logo.jpg'],
+      devOptions: {
+        enabled: false, // Tắt service worker ở môi trường dev để tránh kẹt cache trên mobile
+      },
       manifest: {
         name: 'Family Finance Manager',
         short_name: 'Thu Chi',
         description: 'Ứng dụng quản lý tài chính gia đình',
-        theme_color: '#16a34a',
+        theme_color: '#10b981',
         background_color: '#f8fafc',
         display: 'standalone',
         orientation: 'portrait',

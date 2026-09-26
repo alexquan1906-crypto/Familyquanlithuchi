@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Task } from '../../types';
-import { CheckCircle2, Circle, Trash2, Calendar as CalendarIcon } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2, Calendar as CalendarIcon, Plus, CheckSquare } from 'lucide-react';
 
 interface Props {
   tasks: Task[];
@@ -31,9 +31,9 @@ export default function TaskList({ tasks, loading, onAdd, onToggle, onDelete }: 
 
   if (loading && tasks.length === 0) {
     return (
-      <div className="space-y-4 animate-pulse">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl h-16 border border-slate-200"></div>
+      <div className="space-y-3 animate-pulse">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-3xl h-16 border border-slate-200"></div>
         ))}
       </div>
     );
@@ -43,105 +43,125 @@ export default function TaskList({ tasks, loading, onAdd, onToggle, onDelete }: 
   const completedTasks = tasks.filter(t => t.is_completed);
 
   return (
-    <div className="space-y-8">
-      
-      {/* Thêm Nhiệm vụ Form */}
-      <form onSubmit={handleAdd} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4">
+    <div className="space-y-5">
+      {/* Form Thêm Nhiệm Vụ */}
+      <form onSubmit={handleAdd} className="bg-white p-3.5 md:p-4 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-2.5">
         <input 
           type="text" 
-          placeholder="Ví dụ: Đi tái khám, Mua thuốc..."
+          placeholder="Nhắc việc gia đình: Giỗ tổ tiên, đóng tiền điện, đi khám..."
           value={newTaskTitle}
           onChange={(e) => setNewTaskTitle(e.target.value)}
-          className="flex-1 text-lg px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="flex-1 text-sm md:text-base px-4 py-2.5 border border-slate-200 rounded-2xl bg-slate-50/50 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
         />
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <input 
             type="date"
             value={newTaskDate}
             onChange={(e) => setNewTaskDate(e.target.value)}
-            className="flex-[2] md:w-48 text-base px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-36 text-xs md:text-sm px-3 py-2.5 border border-slate-200 rounded-2xl bg-slate-50/50 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 font-semibold"
           />
           <button 
             type="submit" 
             disabled={isAdding || !newTaskTitle.trim()}
-            className="flex-1 md:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3 px-6 rounded-xl transition-colors whitespace-nowrap"
+            className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold py-2.5 px-5 rounded-2xl transition-all shadow-md shadow-emerald-600/20 text-xs md:text-sm flex items-center justify-center gap-1.5 shrink-0"
           >
-            {isAdding ? 'Đang thêm...' : 'Thêm'}
+            <Plus size={16} />
+            <span>{isAdding ? '...' : 'Thêm'}</span>
           </button>
         </div>
       </form>
 
-      {/* Danh sách công việc */}
-      <div className="space-y-6">
+      {/* Danh Sách Nhiệm Vụ */}
+      <div className="space-y-5">
         {pendingTasks.length > 0 ? (
-          <div className="space-y-3">
-            <h3 className="font-bold text-slate-700 ml-1">Cần làm</h3>
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-              <div className="divide-y divide-slate-100">
-                {pendingTasks.map(task => (
-                  <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-4 flex-1">
-                      <button onClick={() => onToggle(task.id, task.is_completed)} className="text-slate-300 hover:text-green-500 transition-colors shrink-0">
-                        <Circle size={28} />
-                      </button>
-                      <div>
-                        <p className="font-semibold text-slate-800 text-lg md:text-xl line-clamp-1">{task.title}</p>
-                        {task.due_date && (
-                          <div className="flex items-center gap-1.5 text-sm text-slate-500 font-medium mt-1">
-                            <CalendarIcon size={14} />
-                            <span>{new Date(task.due_date).toLocaleDateString('vi-VN')}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button onClick={() => onDelete(task.id)} className="p-2 ml-4 text-slate-400 hover:text-red-500 rounded-lg transition-colors shrink-0">
-                      <Trash2 size={24} />
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
+              Việc Cần Làm ({pendingTasks.length})
+            </h4>
+            <div className="space-y-2">
+              {pendingTasks.map(task => (
+                <div 
+                  key={task.id} 
+                  className="bg-white rounded-3xl p-3.5 md:p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition-all flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
+                    <button 
+                      onClick={() => onToggle(task.id, task.is_completed)} 
+                      className="text-slate-300 hover:text-emerald-500 transition-colors shrink-0"
+                      title="Đánh dấu hoàn thành"
+                    >
+                      <Circle size={24} />
                     </button>
+                    <div className="min-w-0">
+                      <p className="font-extrabold text-slate-800 text-sm md:text-base truncate">{task.title}</p>
+                      {task.due_date && (
+                        <div className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold mt-0.5">
+                          <CalendarIcon size={13} />
+                          <span>Hạn: {new Date(task.due_date).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <button 
+                    onClick={() => onDelete(task.id)} 
+                    className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors shrink-0"
+                    title="Xóa"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         ) : (
-          <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-2xl border border-slate-200 border-dashed">
-            <p className="text-xl mb-1">🎉</p>
-            <p className="font-medium text-lg">Không có nhiệm vụ nào cần làm!</p>
+          <div className="text-center py-8 bg-white/70 rounded-3xl border border-slate-200/80 border-dashed text-slate-400">
+            <CheckSquare size={32} className="mx-auto mb-2 text-emerald-400" />
+            <p className="font-bold text-sm text-slate-600">Tuyệt vời! Không còn việc tồn đọng</p>
+            <p className="text-xs text-slate-400 mt-0.5">Thêm việc cần làm gia đình để cùng nhắc nhở nhau</p>
           </div>
         )}
 
-        {/* Đã hoàn thành */}
+        {/* Đã Hoàn Thành */}
         {completedTasks.length > 0 && (
-          <div className="space-y-3 opacity-70">
-            <h3 className="font-bold text-slate-500 ml-1">Đã hoàn thành</h3>
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-              <div className="divide-y divide-slate-100">
-                {completedTasks.map(task => (
-                  <div key={task.id} className="p-4 flex items-center justify-between bg-slate-50">
-                    <div className="flex items-center gap-4 flex-1">
-                      <button onClick={() => onToggle(task.id, task.is_completed)} className="text-green-500 transition-colors shrink-0">
-                        <CheckCircle2 size={28} />
-                      </button>
-                      <div>
-                        <p className="font-semibold text-slate-500 text-lg md:text-xl line-through line-clamp-1">{task.title}</p>
-                        {task.due_date && (
-                          <div className="flex items-center gap-1.5 text-sm text-slate-400 font-medium mt-1">
-                            <CalendarIcon size={14} />
-                            <span>{new Date(task.due_date).toLocaleDateString('vi-VN')}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button onClick={() => onDelete(task.id)} className="p-2 ml-4 text-slate-300 hover:text-red-500 rounded-lg transition-colors shrink-0">
-                      <Trash2 size={24} />
+          <div className="space-y-2 opacity-75">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
+              Đã Hoàn Thành ({completedTasks.length})
+            </h4>
+            <div className="space-y-2">
+              {completedTasks.map(task => (
+                <div 
+                  key={task.id} 
+                  className="bg-slate-50/80 rounded-3xl p-3 md:p-3.5 border border-slate-200/60 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
+                    <button 
+                      onClick={() => onToggle(task.id, task.is_completed)} 
+                      className="text-emerald-500 hover:text-slate-400 transition-colors shrink-0"
+                      title="Bỏ đánh dấu"
+                    >
+                      <CheckCircle2 size={24} />
                     </button>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-400 line-through text-sm truncate">{task.title}</p>
+                      {task.due_date && (
+                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                          Ngày: {new Date(task.due_date).toLocaleDateString('vi-VN')}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <button 
+                    onClick={() => onDelete(task.id)} 
+                    className="p-1.5 text-slate-300 hover:text-rose-500 rounded-xl transition-colors shrink-0"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         )}
       </div>
-
     </div>
   );
 }

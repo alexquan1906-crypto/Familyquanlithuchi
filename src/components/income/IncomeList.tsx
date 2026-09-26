@@ -1,5 +1,5 @@
 import { Income } from '../../types';
-import { Pencil, Trash2, ArrowDownCircle } from 'lucide-react';
+import { Pencil, Trash2, ArrowDownLeft, Coins } from 'lucide-react';
 import { getLunarDateMock as getLunarDate } from '../../lib/lunar';
 
 interface Props {
@@ -11,14 +11,13 @@ interface Props {
 }
 
 export default function IncomeList({ incomes, loading, onEdit, onDelete, filterPerson }: Props) {
-  
   const filteredIncomes = incomes.filter(inc => filterPerson === 'all' || inc.person === filterPerson);
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
+      <div className="space-y-3 animate-pulse">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl h-24 border border-slate-200"></div>
+          <div key={i} className="bg-white rounded-3xl h-20 border border-slate-200/80"></div>
         ))}
       </div>
     );
@@ -26,73 +25,90 @@ export default function IncomeList({ incomes, loading, onEdit, onDelete, filterP
 
   if (filteredIncomes.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-        <p className="text-lg">Chưa có giao dịch thu nhập nào</p>
+      <div className="bg-white rounded-3xl border border-slate-200/80 p-8 text-center text-slate-400 shadow-sm">
+        <Coins size={32} className="mx-auto mb-2 text-slate-300" />
+        <p className="font-bold text-slate-600 text-base">Chưa có giao dịch thu nhập nào</p>
+        <p className="text-xs text-slate-400 mt-1">Các khoản thu của Bố & Mẹ sẽ xuất hiện tại đây</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <div className="divide-y divide-slate-100">
-        {filteredIncomes.map((inc) => {
-          const dateObj = new Date(inc.date);
-          const lunarInfo = getLunarDate(dateObj);
-          
-          return (
-          <div key={inc.id} className="p-4 md:p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4 flex-1">
+    <div className="space-y-2.5">
+      {filteredIncomes.map((inc) => {
+        const dateObj = new Date(inc.date);
+        const lunarInfo = getLunarDate(dateObj);
+        const isBo = inc.person === 'bo';
+        
+        return (
+          <div 
+            key={inc.id} 
+            className="bg-white rounded-3xl p-3.5 md:p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 pr-3">
               {/* Avatar Icon */}
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-100 text-green-700 text-xl font-bold">
-                  {inc.person === 'bo' ? '👨' : '👩'}
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-800 text-lg md:text-xl">
-                    {inc.note || 'Không có ghi chú'}
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-inner shrink-0 ${
+                isBo ? 'bg-sky-100 text-sky-700' : 'bg-pink-100 text-pink-700'
+              }`}>
+                {isBo ? '👨' : '👩'}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="font-extrabold text-slate-800 text-sm md:text-base truncate">
+                    {inc.note || (isBo ? 'Thu nhập của Bố' : 'Thu nhập của Mẹ')}
                   </p>
-                  <div className="flex flex-col gap-1 mt-1">
-                    <span className="text-[13px] md:text-sm font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100 w-fit">
-                      🌙 {lunarInfo.day}/{lunarInfo.month} ÂL ({lunarInfo.canChi})
-                    </span>
-                    <span className="text-xs md:text-sm text-slate-500 font-medium pl-1">
-                      🌞 {dateObj.toLocaleDateString('vi-VN')}
-                    </span>
-                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border hidden sm:inline-block shrink-0 ${
+                    isBo ? 'bg-sky-50 text-sky-700 border-sky-100' : 'bg-pink-50 text-pink-700 border-pink-100'
+                  }`}>
+                    {isBo ? 'Bố' : 'Mẹ'}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60 inline-flex items-center gap-1">
+                    🌙 {lunarInfo.day}/{lunarInfo.month} ÂL · {lunarInfo.canChi}
+                  </span>
+                  <span className="text-slate-400 font-medium">
+                    · {dateObj.toLocaleDateString('vi-VN')}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Số Tiền & Action */}
-            <div className="flex flex-col items-end gap-2 ml-4">
-              <div className="font-bold text-lg md:text-xl text-green-600 flex items-center gap-1">
-                <ArrowDownCircle size={18} />
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
+              <span className="font-black text-base md:text-lg text-emerald-600 tracking-tight flex items-center gap-0.5">
+                <ArrowDownLeft size={16} />
                 +{inc.amount.toLocaleString('vi-VN')} đ
-              </div>
-              <div className="flex items-center gap-2">
+              </span>
+              
+              <div className="flex items-center gap-1">
                 <button
+                  type="button"
                   onClick={() => onEdit(inc)}
-                  className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                  aria-label="Sửa"
+                  className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-colors"
+                  title="Chỉnh sửa"
                 >
-                  <Pencil size={20} />
+                  <Pencil size={15} />
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
-                    if (window.confirm('Bạn có chắc chắn muốn xóa giao dịch này không?')) {
+                    if (window.confirm('Bạn có chắc chắn muốn xóa khoản thu nhập này?')) {
                       onDelete(inc.id);
                     }
                   }}
-                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  aria-label="Xóa"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                  title="Xóa"
                 >
-                  <Trash2 size={20} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>
           </div>
-        )})}
-      </div>
+        );
+      })}
     </div>
   );
 }
