@@ -16,6 +16,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: null,
+      selfDestroying: true,
       includeAssets: ['logo.jpg'],
       workbox: {
         skipWaiting: true,

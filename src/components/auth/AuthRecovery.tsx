@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { clearStoredAuthSession } from '../../lib/supabase';
 
 export default function AuthRecovery({ message }: { message: string }) {
   return (
@@ -11,9 +11,16 @@ export default function AuthRecovery({ message }: { message: string }) {
       >
         Thử lại
       </button>
-      <Link to="/auth" className="text-sm font-semibold text-emerald-300 underline">
+      <button
+        type="button"
+        className="text-sm font-semibold text-emerald-300 underline"
+        onClick={() => {
+          clearStoredAuthSession();
+          window.location.assign('/auth');
+        }}
+      >
         Đăng nhập lại
-      </Link>
+      </button>
     </div>
   );
 }

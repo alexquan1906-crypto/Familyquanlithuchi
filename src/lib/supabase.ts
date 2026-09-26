@@ -15,3 +15,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
   }
 });
+
+export function clearStoredAuthSession() {
+  try {
+    const projectRef = new URL(supabaseUrl).hostname.split('.')[0];
+    const key = `sb-${projectRef}-auth-token`;
+    localStorage.removeItem(key);
+    localStorage.removeItem(`${key}-user`);
+  } catch (error) {
+    console.warn('Could not clear the saved auth session:', error);
+  }
+}
