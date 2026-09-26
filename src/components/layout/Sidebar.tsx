@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Wallet, PieChart, Calendar, CalendarDays, HeartHandshake } from 'lucide-react';
+import { LayoutDashboard, Wallet, PieChart, Calendar, CalendarDays } from 'lucide-react';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Tổng quan' },
@@ -27,9 +27,6 @@ export default function Sidebar() {
             <h1 className="text-base font-extrabold text-slate-800 tracking-tight leading-tight">
               Family Finance
             </h1>
-            <p className="text-[11px] font-semibold text-emerald-600">
-              Gia đình hạnh phúc
-            </p>
           </div>
         </div>
       </div>
@@ -67,17 +64,6 @@ export default function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Footer Info Widget */}
-      <div className="p-3 m-3 bg-gradient-to-br from-emerald-50 to-teal-50/60 rounded-2xl border border-emerald-100/80 text-emerald-950">
-        <div className="flex items-center gap-2 mb-1">
-          <HeartHandshake size={16} className="text-emerald-600" />
-          <span className="text-xs font-bold text-emerald-800">Đồng lòng tài chính</span>
-        </div>
-        <p className="text-[11px] text-emerald-700/80 leading-relaxed">
-          Tích tiểu thành đại · Chi tiêu thông minh cho tổ ấm vững vàng.
-        </p>
-      </div>
     </aside>
   );
 }
