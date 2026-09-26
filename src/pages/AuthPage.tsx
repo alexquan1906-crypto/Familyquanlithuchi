@@ -54,17 +54,37 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
 
+    const cleanEmail = email.trim();
+
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { error } = await supabase.auth.signInWithPassword({ 
+          email: cleanEmail, 
+          password 
+        });
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            throw new Error('Sai tài khoản hoặc mật khẩu! Vui lòng kiểm tra lại.');
+          }
+          if (error.message.includes('Email not confirmed')) {
+            throw new Error('Email chưa được xác thực! Vui lòng vào hộp thư email để bấm link kích hoạt, hoặc tắt "Confirm email" trong Supabase.');
+          }
+          throw error;
+        }
         toast.success('Đăng nhập thành công! Chào mừng bạn quay lại.');
         navigate('/');
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ 
+          email: cleanEmail, 
+          password 
+        });
         if (error) throw error;
-        toast.success('Đăng ký tài khoản thành công!');
-        navigate('/');
+        if (!data.session) {
+          toast.success('Đăng ký thành công! Hãy kiểm tra hộp thư email để kích hoạt tài khoản.');
+        } else {
+          toast.success('Đăng ký tài khoản thành công!');
+          navigate('/');
+        }
       }
     } catch (error: any) {
       toast.error(error.message || 'Có lỗi xảy ra, vui lòng thử lại!');
