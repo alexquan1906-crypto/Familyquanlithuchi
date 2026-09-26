@@ -66,26 +66,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ĐĂNG NHẬP
   const signIn = async (accountInput: string, password: string) => {
-    const email = normalizeEmail(accountInput);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const account = accountInput.trim().toLowerCase();
+    // Older versions stored short account names under @family.local.
+    // Try that identity first so existing transactions remain with their owner.
+    const emails = account.includes('@')
+      ? [account]
+      : [`${account}@family.local`, normalizeEmail(account)];
 
-    if (error) {
-      if (error.message.includes('Invalid login credentials')) {
-        throw new Error('Tài khoản hoặc mật khẩu không chính xác!');
+    for (const [index, email] of emails.entries()) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (!error) {
+        if (!data.session) throw new Error('Đăng nhập chưa tạo được phiên. Vui lòng thử lại.');
+        setSession(data.session);
+        setUser(data.user);
+        setAuthError(null);
+        return;
       }
+
+      const invalidCredentials = error.code === 'invalid_credentials' || error.message.includes('Invalid login credentials');
+      if (invalidCredentials && index < emails.length - 1) continue;
+      if (invalidCredentials) throw new Error('Tài khoản hoặc mật khẩu không chính xác!');
       if (error.message.includes('Email not confirmed')) {
         throw new Error('Email chưa được kích hoạt trong Supabase!');
       }
       throw new Error(error.message || 'Đăng nhập không thành công.');
     }
-
-    if (!data.session) throw new Error('Đăng nhập chưa tạo được phiên. Vui lòng thử lại.');
-    setSession(data.session);
-    setUser(data.user);
-    setAuthError(null);
   };
 
   // ĐĂNG KÝ
