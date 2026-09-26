@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Wallet, TrendingUp, PlusCircle, MinusCircle, X } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Wallet, TrendingUp, PlusCircle, MinusCircle } from 'lucide-react';
 import SummaryCard from '../components/stats/SummaryCard';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import FinanceDateFilter from '../components/finance/FinanceDateFilter';
 import DailyBreakdown from '../components/stats/DailyBreakdown';
-import IncomeForm from '../components/income/IncomeForm';
-import ExpenseForm from '../components/expense/ExpenseForm';
+import TransactionModal from '../components/finance/TransactionModal';
 import { useIncome } from '../hooks/useIncome';
 import { useExpense } from '../hooks/useExpense';
 
@@ -131,36 +130,14 @@ export default function Dashboard() {
         <DailyBreakdown transactions={rawTransactions || []} />
       </div>
 
-      {/* Form Modals Overlay */}
-      {modalType !== 'none' && (
-        <div 
-          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md overflow-y-auto overscroll-contain"
-          onClick={(e) => { if (e.target === e.currentTarget) setModalType('none'); }}
-        >
-          <div className="min-h-full flex items-end sm:items-center justify-center sm:p-6 p-0">
-            <div className="bg-white w-full max-w-lg shadow-2xl relative flex flex-col border border-slate-100 animate-slide-up sm:animate-in-scale rounded-t-3xl sm:rounded-3xl max-h-[92vh] sm:max-h-[90vh]">
-              <div className="flex justify-between items-center p-5 border-b border-slate-100 shrink-0 sticky top-0 bg-white rounded-t-3xl z-10">
-                <div className="flex items-center gap-2.5">
-                  <div className={`w-3 h-3 rounded-full ${modalType === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
-                  <h2 className={`text-lg md:text-xl font-black ${modalType === 'income' ? 'text-emerald-700' : 'text-rose-600'}`}>
-                    {modalType === 'income' ? 'Thêm Khoản Thu Nhập' : 'Thêm Khoản Chi Tiêu'}
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setModalType('none')}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain">
-                {modalType === 'income' && <IncomeForm onSubmit={handleIncomeSubmit} onCancel={() => setModalType('none')} />}
-                {modalType === 'expense' && <ExpenseForm onSubmit={handleExpenseSubmit} onCancel={() => setModalType('none')} />}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Transaction Modal */}
+      <TransactionModal
+        isOpen={modalType !== 'none'}
+        onClose={() => setModalType('none')}
+        defaultType={modalType === 'none' ? 'expense' : modalType}
+        onIncomeSubmit={handleIncomeSubmit}
+        onExpenseSubmit={handleExpenseSubmit}
+      />
     </div>
   );
 }

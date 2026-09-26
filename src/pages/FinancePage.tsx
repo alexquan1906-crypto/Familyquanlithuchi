@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useIncome } from '../hooks/useIncome';
 import { useExpense } from '../hooks/useExpense';
-import IncomeForm from '../components/income/IncomeForm';
 import IncomeList from '../components/income/IncomeList';
-import ExpenseForm from '../components/expense/ExpenseForm';
 import ExpenseList from '../components/expense/ExpenseList';
 import FinanceDateFilter from '../components/finance/FinanceDateFilter';
+import TransactionModal from '../components/finance/TransactionModal';
 import { Income, Expense } from '../types';
-import { Plus, ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
+import { Plus, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 export default function FinancePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,7 +21,7 @@ export default function FinancePage() {
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   
-  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterPerson, setFilterPerson] = useState<'all' | 'bo' | 'me'>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
 
@@ -35,7 +34,7 @@ export default function FinancePage() {
   }, [currentTab, fetchIncomes, fetchExpenses, dateRange.start, dateRange.end]);
 
   useEffect(() => {
-    setIsFormVisible(false);
+    setIsModalOpen(false);
     setEditingIncome(null);
     setEditingExpense(null);
   }, [currentTab]);
@@ -45,13 +44,13 @@ export default function FinancePage() {
       const success = await updateIncome(editingIncome.id, data);
       if (success) {
         setEditingIncome(null);
-        setIsFormVisible(false);
+        setIsModalOpen(false);
       }
       return success;
     } else {
       const success = await addIncome(data);
       if (success) {
-        setIsFormVisible(false);
+        setIsModalOpen(false);
       }
       return success;
     }
@@ -62,13 +61,13 @@ export default function FinancePage() {
       const success = await updateExpense(editingExpense.id, data);
       if (success) {
         setEditingExpense(null);
-        setIsFormVisible(false);
+        setIsModalOpen(false);
       }
       return success;
     } else {
       const success = await addExpense(data);
       if (success) {
-        setIsFormVisible(false);
+        setIsModalOpen(false);
       }
       return success;
     }
@@ -76,14 +75,14 @@ export default function FinancePage() {
 
   const handleEditIncome = (inc: Income) => {
     setEditingIncome(inc);
-    setIsFormVisible(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setEditingExpense(null);
+    setIsModalOpen(true);
   };
 
   const handleEditExpense = (exp: Expense) => {
     setEditingExpense(exp);
-    setIsFormVisible(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setEditingIncome(null);
+    setIsModalOpen(true);
   };
 
   return (
@@ -128,64 +127,10 @@ export default function FinancePage() {
         </button>
       </div>
 
-      {/* Form Card (Expandable) */}
-      {isFormVisible && (
-        <div className="bg-white rounded-3xl p-5 md:p-6 border border-slate-200/80 shadow-xl animate-in-scale max-h-[75vh] overflow-y-auto overscroll-contain">
-          <div className="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
-            <h3 className="font-black text-slate-800 text-lg">
-              {currentTab === 'income' 
-                ? (editingIncome ? 'Chỉnh Sửa Khoản Thu Nhập' : 'Thêm Khoản Thu Nhập Mới')
-                : (editingExpense ? 'Chỉnh Sửa Khoản Chi Tiêu' : 'Thêm Khoản Chi Tiêu Mới')
-              }
-            </h3>
-            <button
-              onClick={() => {
-                setIsFormVisible(false);
-                setEditingIncome(null);
-                setEditingExpense(null);
-              }}
-              className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          {currentTab === 'income' ? (
-            <IncomeForm 
-              onSubmit={handleIncomeSubmit} 
-              initialData={editingIncome ? {
-                amount: editingIncome.amount,
-                person: editingIncome.person,
-                date: editingIncome.date.split('T')[0],
-                note: editingIncome.note || ''
-              } : undefined}
-              onCancel={() => {
-                setIsFormVisible(false);
-                setEditingIncome(null);
-              }}
-            />
-          ) : (
-            <ExpenseForm 
-              onSubmit={handleExpenseSubmit} 
-              initialData={editingExpense ? {
-                amount: editingExpense.amount,
-                category: editingExpense.category,
-                date: editingExpense.date.split('T')[0],
-                note: editingExpense.note || ''
-              } : undefined}
-              onCancel={() => {
-                setIsFormVisible(false);
-                setEditingExpense(null);
-              }}
-            />
-          )}
-        </div>
-      )}
-
       {/* Tab: Thu Nhập */}
       {currentTab === 'income' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-400 uppercase">Lọc theo:</span>
               <div className="flex gap-1.5">
@@ -209,17 +154,16 @@ export default function FinancePage() {
               </div>
             </div>
 
-            {!isFormVisible && (
-              <button 
-                onClick={() => {
-                  setEditingIncome(null);
-                  setIsFormVisible(true);
-                }}
-                className="hidden sm:inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs md:text-sm py-2.5 px-4 rounded-2xl transition-all shadow-md shadow-emerald-600/20 active:scale-95"
-              >
-                <Plus size={16} /> Thêm Thu Nhập
-              </button>
-            )}
+            <button 
+              onClick={() => {
+                setEditingIncome(null);
+                setEditingExpense(null);
+                setIsModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs md:text-sm py-2 px-3.5 sm:py-2.5 sm:px-4 rounded-2xl transition-all shadow-md shadow-emerald-600/20 active:scale-95"
+            >
+              <Plus size={16} /> Thêm Thu Nhập
+            </button>
           </div>
 
           <IncomeList 
@@ -235,7 +179,7 @@ export default function FinancePage() {
       {/* Tab: Chi Tiêu */}
       {currentTab === 'expense' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-400 uppercase">Danh mục:</span>
               <select
@@ -257,17 +201,16 @@ export default function FinancePage() {
               </select>
             </div>
 
-            {!isFormVisible && (
-              <button 
-                onClick={() => {
-                  setEditingExpense(null);
-                  setIsFormVisible(true);
-                }}
-                className="hidden sm:inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs md:text-sm py-2.5 px-4 rounded-2xl transition-all shadow-md shadow-rose-600/20 active:scale-95"
-              >
-                <Plus size={16} /> Thêm Chi Tiêu
-              </button>
-            )}
+            <button 
+              onClick={() => {
+                setEditingIncome(null);
+                setEditingExpense(null);
+                setIsModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs md:text-sm py-2 px-3.5 sm:py-2.5 sm:px-4 rounded-2xl transition-all shadow-md shadow-rose-600/20 active:scale-95"
+            >
+              <Plus size={16} /> Thêm Chi Tiêu
+            </button>
           </div>
 
           <ExpenseList 
@@ -281,24 +224,36 @@ export default function FinancePage() {
       )}
 
       {/* Floating Action Button on Mobile */}
-      {!isFormVisible && (
-        <button
-          onClick={() => {
-            if (currentTab === 'income') setEditingIncome(null);
-            else setEditingExpense(null);
-            setIsFormVisible(true);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          className={`sm:hidden fixed bottom-24 right-4 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl z-40 active:scale-90 transition-all touch-manipulation ${
-            currentTab === 'income' 
-              ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 glow-emerald' 
-              : 'bg-gradient-to-tr from-rose-600 to-red-500 glow-rose'
-          }`}
-          title="Thêm Giao Dịch"
-        >
-          <Plus size={26} strokeWidth={2.5} />
-        </button>
-      )}
+      <button
+        onClick={() => {
+          setEditingIncome(null);
+          setEditingExpense(null);
+          setIsModalOpen(true);
+        }}
+        className={`sm:hidden fixed bottom-24 right-4 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl z-40 active:scale-90 transition-all touch-manipulation ${
+          currentTab === 'income' 
+            ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 glow-emerald' 
+            : 'bg-gradient-to-tr from-rose-600 to-red-500 glow-rose'
+        }`}
+        title="Thêm Giao Dịch"
+      >
+        <Plus size={26} strokeWidth={2.5} />
+      </button>
+
+      {/* Transaction Modal (Popup Bottom Sheet on Mobile, Centered Modal on Desktop) */}
+      <TransactionModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingIncome(null);
+          setEditingExpense(null);
+        }}
+        defaultType={currentTab === 'expense' ? 'expense' : 'income'}
+        editingIncome={editingIncome}
+        editingExpense={editingExpense}
+        onIncomeSubmit={handleIncomeSubmit}
+        onExpenseSubmit={handleExpenseSubmit}
+      />
     </div>
   );
 }

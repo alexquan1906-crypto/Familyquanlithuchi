@@ -18,7 +18,9 @@ html {
   height: -webkit-fill-available;
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
-  -webkit-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
 }
 
 body {
@@ -31,6 +33,9 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
   min-height: 100%;
   min-height: 100vh;
   min-height: -webkit-fill-available;
@@ -204,6 +209,19 @@ input[type="number"] {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in-fade {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-in-scale {

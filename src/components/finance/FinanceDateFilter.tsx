@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Filter, Calendar, X, Check } from 'lucide-react';
 import { Lunar, Solar } from 'lunar-javascript';
 import { FilterPeriodMode, getDateRangeForPeriod } from '../../lib/dateUtils';
@@ -35,6 +36,15 @@ export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilte
     onFilterComplete(start, end);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
 
   const handleApply = (mode: FilterPeriodMode) => {
     setActiveFilterId(mode);
@@ -107,13 +117,20 @@ export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilte
         </button>
       </div>
 
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md overflow-y-auto overscroll-contain"
-          onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
-        >
-          <div className="min-h-full flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <div className="bg-white w-full max-w-lg shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] animate-slide-up sm:animate-in-scale border border-slate-100 rounded-t-3xl sm:rounded-3xl">
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex flex-col justify-end sm:justify-center items-center">
+          <div 
+            className="fixed inset-0 bg-slate-950/65 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="relative z-10 w-full sm:max-w-lg bg-white rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] max-h-[90dvh] animate-slide-up sm:animate-in-scale border border-slate-100 overflow-hidden">
+            {/* Mobile Drag Handle */}
+            <div
+              className="pt-2.5 pb-1 sm:hidden flex justify-center items-center cursor-pointer select-none active:opacity-60"
+              onClick={() => setIsOpen(false)}
+            >
+              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+            </div>
               {/* Header */}
               <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/80 shrink-0 rounded-t-3xl">
                 <div className="flex items-center gap-2.5">
@@ -252,9 +269,9 @@ export default function FinanceDateFilter({ onFilterComplete }: FinanceDateFilte
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

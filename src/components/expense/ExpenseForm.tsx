@@ -72,13 +72,13 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 sm:space-y-5 pb-4">
       {/* Danh mục */}
       <div>
         <label className="block text-slate-700 font-bold text-xs uppercase tracking-wider mb-2">
           Chọn Danh Mục
         </label>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
           {expenseCategories.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
@@ -86,21 +86,21 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
                 key={cat.id}
                 type="button"
                 onClick={() => setValue('category', cat.id, { shouldValidate: true })}
-                className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-200 relative group ${
+                className={`flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-2xl border transition-all duration-200 relative group active:scale-95 ${
                   isSelected 
-                    ? 'border-rose-500 bg-rose-50/80 shadow-md shadow-rose-500/10 scale-105 z-10' 
+                    ? 'border-rose-500 bg-rose-50/90 shadow-sm ring-2 ring-rose-500/20 scale-[1.02] z-10' 
                     : 'border-slate-200/70 bg-slate-50/50 hover:bg-slate-100/70 hover:border-slate-300'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl bg-gradient-to-br ${cat.color} text-white shadow-sm mb-1`}>
+                <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg sm:text-xl bg-gradient-to-br ${cat.color} text-white shadow-xs mb-1`}>
                   {cat.icon}
                 </div>
-                <span className={`text-[11px] text-center leading-tight ${isSelected ? 'font-black text-rose-700' : 'font-medium text-slate-600'}`}>
+                <span className={`text-[10px] sm:text-xs text-center leading-tight truncate max-w-full ${isSelected ? 'font-black text-rose-700' : 'font-semibold text-slate-600'}`}>
                   {cat.label}
                 </span>
                 {isSelected && (
-                  <div className="absolute top-1 right-1 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center text-white">
-                    <Check size={10} strokeWidth={3} />
+                  <div className="absolute top-1 right-1 w-3.5 h-3.5 bg-rose-500 rounded-full flex items-center justify-center text-white shadow-xs">
+                    <Check size={9} strokeWidth={3} />
                   </div>
                 )}
               </button>
@@ -121,7 +121,7 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
             inputMode="decimal"
             enterKeyHint="done"
             {...register('amount')}
-            className={`w-full min-h-[54px] text-xl md:text-2xl font-black px-4 pr-10 border rounded-2xl bg-slate-50/50 focus:bg-white focus:outline-none transition-all ${
+            className={`w-full min-h-[52px] text-xl md:text-2xl font-black px-4 pr-10 border rounded-2xl bg-slate-50/50 focus:bg-white focus:outline-none transition-all ${
               errors.amount ? 'border-rose-500 focus:ring-2 focus:ring-rose-500' : 'border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
             }`}
             placeholder="0"
@@ -138,7 +138,7 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
               key={amt}
               type="button"
               onClick={() => addAmount(amt)}
-              className="text-[11px] font-bold px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-xl transition-colors border border-slate-200/60 active:scale-95"
+              className="text-xs font-bold px-2.5 py-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 rounded-xl transition-colors border border-slate-200/60 active:scale-95 shadow-xs"
             >
               +{amt >= 1000000 ? `${amt / 1000000}tr` : `${amt / 1000}k`}
             </button>
@@ -146,7 +146,7 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
           <button
             type="button"
             onClick={() => setValue('amount', 0, { shouldValidate: true })}
-            className="text-[11px] font-bold px-2 py-1 text-slate-400 hover:text-slate-600 rounded-xl transition-colors"
+            className="text-xs font-bold px-2.5 py-1.5 text-slate-400 hover:text-slate-600 rounded-xl transition-colors active:scale-95"
           >
             Đặt lại
           </button>
@@ -197,12 +197,12 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-3 pt-3 border-t border-slate-100">
+      <div className="flex gap-3 pt-3 pb-2 border-t border-slate-100">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 min-h-[50px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-colors text-sm"
+            className="flex-1 min-h-[50px] bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold rounded-2xl transition-all text-sm"
           >
             Hủy Bỏ
           </button>
@@ -210,7 +210,7 @@ export default function ExpenseForm({ onSubmit, initialData, onCancel, isLoading
         <button
           type="submit"
           disabled={isLoading}
-          className={`flex-[2] min-h-[50px] bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl transition-all text-sm shadow-md shadow-rose-600/20 active:scale-98 ${
+          className={`flex-[2] min-h-[50px] bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold rounded-2xl transition-all text-sm shadow-md shadow-rose-600/20 ${
             isLoading ? 'opacity-70 cursor-not-allowed' : ''
           }`}
         >
