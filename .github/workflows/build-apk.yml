@@ -1,0 +1,90 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Đóng gói Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài đặt Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Cài đặt dependencies
+        run: npm ci
+
+      - name: Build ứng dụng Web (Vite + React)
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://djqfpwpltefaswtmbgih.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqcWZwd3BsdGVmYXN3dG1iZ2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NTI1NTMsImV4cCI6MjA4OTQyODU1M30.6sIERIac0pSerUFwV9yAwqdyfAcp9l_E_hckpClbThE' }}
+
+      - name: Đồng bộ Capacitor sang thư mục Android
+        run: npx cap sync android
+
+      - name: Cài đặt JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cài đặt Gradle Cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Cấp quyền thực thi cho Gradle wrapper
+        run: chmod +x ./android/gradlew
+
+      - name: Biên dịch file APK (Debug APK sẵn sàng cài đặt)
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      - name: Đổi tên file APK đầu ra
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk FamilyFinance-v1.0.apk
+          ls -lh FamilyFinance-v1.0.apk
+
+      - name: Lấy ngày giờ hiện tại
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
+      - name: Đính kèm file APK vào Artifacts (Tải trực tiếp từ Actions tab)
+        uses: actions/upload-artifact@v4
+        with:
+          name: FamilyFinance-v1.0-APK
+          path: FamilyFinance-v1.0.apk
+          retention-days: 30
+
+      - name: Xuất bản lên GitHub Releases (Tải cực nhanh trên điện thoại)
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        with:
+          tag_name: latest-apk
+          name: "Family Finance APK mới nhất"
+          body: |
+            ### 📱 Bản Cài Đặt Android (APK) - Family Finance
+            * **Phiên bản:** v1.0
+            * **Thời gian build:** ${{ steps.date.outputs.date }}
+            * **Hệ điều hành:** Android 7.0 trở lên
+
+            #### 📥 Hướng dẫn cài đặt trên điện thoại Android:
+            1. Bấm vào file **`FamilyFinance-v1.0.apk`** bên dưới để tải về điện thoại.
+            2. Mở file APK vừa tải về $\rightarrow$ Chọn **Cài đặt (Install)**.
+            3. Nếu điện thoại hiển thị cảnh báo *"Cài đặt từ nguồn không xác định"*, bấm **Cài đặt mọi lúc / Cho phép từ nguồn này**.
+            4. Mở app và sử dụng bình thường!
+          files: FamilyFinance-v1.0.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
