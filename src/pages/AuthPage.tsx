@@ -1,28 +1,34 @@
-import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, Eye, EyeOff, Sparkles, HeartHandshake, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, User as UserIcon, Eye, EyeOff, Sparkles, Users, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
+  const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { session, signInOrSignUp } = useAuth();
   const navigate = useNavigate();
+
+  // Nếu thiết bị đã có phiên đăng nhập trước đó, tự động vào thẳng app
+  useEffect(() => {
+    if (session) {
+      navigate('/', { replace: true });
+    }
+  }, [session, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setLoading(true);
 
-    // Chuẩn hóa email: xóa khoảng trắng 2 đầu và chuyển về chữ thường
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanAccount = account.trim();
 
-    if (!cleanEmail) {
-      setErrorMessage('Vui lòng nhập địa chỉ email hợp lệ!');
+    if (!cleanAccount) {
+      setErrorMessage('Vui lòng nhập tên tài khoản hoặc email gia đình!');
       setLoading(false);
       return;
     }
@@ -34,45 +40,16 @@ export default function AuthPage() {
     }
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ 
-          email: cleanEmail, 
-          password 
-        });
-
-        if (error) {
-          console.error('Lỗi đăng nhập:', error);
-          if (error.message.includes('Invalid login credentials')) {
-            throw new Error('Sai tài khoản hoặc mật khẩu! Vui lòng kiểm tra lại.');
-          }
-          if (error.message.includes('Email not confirmed')) {
-            throw new Error('Email chưa được xác thực! Vui lòng vào hộp thư email để bấm link kích hoạt, hoặc tắt "Confirm email" trong cài đặt Supabase.');
-          }
-          throw error;
-        }
-
-        toast.success('Đăng nhập thành công! Đang chuyển hướng...');
-        navigate('/');
+      const { isNewAccount } = await signInOrSignUp(cleanAccount, password);
+      
+      if (isNewAccount) {
+        toast.success('Đã kích hoạt tài khoản gia đình thành công! Cả nhà có thể dùng thông tin này để đăng nhập.');
       } else {
-        const { data, error } = await supabase.auth.signUp({ 
-          email: cleanEmail, 
-          password 
-        });
-
-        if (error) {
-          console.error('Lỗi đăng ký:', error);
-          throw error;
-        }
-
-        if (!data.session) {
-          toast.success('Đăng ký thành công! Hãy kiểm tra hộp thư email để kích hoạt tài khoản.');
-          setErrorMessage('Tài khoản đã tạo! Nếu Supabase yêu cầu xác thực email, bạn cần bấm link kích hoạt trong hộp thư trước khi đăng nhập.');
-        } else {
-          toast.success('Đăng ký tài khoản thành công!');
-          navigate('/');
-        }
+        toast.success('Đăng nhập thành công! Đang vào không gian gia đình...');
       }
+      navigate('/');
     } catch (error: any) {
+      console.error('Lỗi xác thực:', error);
       const msg = error.message || 'Có lỗi xảy ra, vui lòng thử lại!';
       setErrorMessage(msg);
       toast.error(msg);
@@ -104,37 +81,15 @@ export default function AuthPage() {
           <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">
             Family Finance
           </h1>
-          <p className="text-xs md:text-sm text-slate-400 font-medium mt-1">
-            Không gian tài chính & thu chi dành riêng cho gia đình
+          <p className="text-xs md:text-sm text-slate-500 font-medium mt-1">
+            Không gian tài chính & sổ thu chi dùng chung cho cả gia đình
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex bg-slate-100 p-1 rounded-2xl mb-5">
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin(true);
-              setErrorMessage(null);
-            }}
-            className={`flex-1 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all duration-200 cursor-pointer ${
-              isLogin ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Đăng Nhập
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin(false);
-              setErrorMessage(null);
-            }}
-            className={`flex-1 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all duration-200 cursor-pointer ${
-              !isLogin ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Đăng Ký
-          </button>
+        {/* Thông báo hướng dẫn tài khoản dùng chung */}
+        <div className="mb-5 p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 text-emerald-800 text-xs font-semibold flex items-center gap-2.5">
+          <Users size={18} className="text-emerald-600 shrink-0" />
+          <span>Tất cả các thành viên (Bố, Mẹ, Con cái) chỉ cần nhập cùng Tên tài khoản & Mật khẩu này trên điện thoại để vào chung.</span>
         </div>
 
         {/* Inline Error Alert if any */}
@@ -148,30 +103,29 @@ export default function AuthPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-slate-700 font-bold text-xs uppercase tracking-wider mb-1.5 ml-1">
-              Email Tài Khoản
+              Tên Tài Khoản Hoặc Email
             </label>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                <Mail size={18} />
+                <UserIcon size={18} />
               </div>
               <input
-                type="email"
-                inputMode="email"
+                type="text"
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={account}
+                onChange={(e) => setAccount(e.target.value)}
                 required
                 className="w-full min-h-[50px] text-sm pl-11 pr-4 border border-slate-200 rounded-2xl bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-medium"
-                placeholder="vidu@gmail.com"
+                placeholder="Ví dụ: giadinh hoặc baquan@gmail.com"
               />
             </div>
           </div>
 
           <div>
             <label className="block text-slate-700 font-bold text-xs uppercase tracking-wider mb-1.5 ml-1">
-              Mật Khẩu
+              Mật Khẩu Dùng Chung
             </label>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
@@ -186,9 +140,8 @@ export default function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                autoComplete={isLogin ? 'current-password' : 'new-password'}
                 className="w-full min-h-[50px] text-sm pl-11 pr-11 border border-slate-200 rounded-2xl bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-medium"
-                placeholder="Tối thiểu 6 ký tự..."
+                placeholder="Nhập tối thiểu 6 ký tự..."
               />
               <button
                 type="button"
@@ -209,19 +162,17 @@ export default function AuthPage() {
             {loading ? (
               <>
                 <Loader2 size={18} className="animate-spin text-white" />
-                <span>Đang xử lý...</span>
+                <span>Đang kiểm tra & vào app...</span>
               </>
-            ) : isLogin ? (
-              <span>Đăng Nhập Vào Gia Đình</span>
             ) : (
-              <span>Đăng Ký Tài Khoản Mới</span>
+              <span>Vào Không Gian Gia Đình</span>
             )}
           </button>
         </form>
 
         <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-xs text-slate-400 font-medium">
-          <HeartHandshake size={15} className="text-emerald-500" />
-          <span>Bảo mật dữ liệu tài chính gia đình tuyệt đối</span>
+          <ShieldCheck size={16} className="text-emerald-500" />
+          <span>Đồng bộ tức thời trên tất cả điện thoại của gia đình</span>
         </div>
       </div>
     </div>
