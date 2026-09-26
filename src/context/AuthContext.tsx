@@ -37,7 +37,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    // Keep the route guarded while storage/token recovery is still pending.
+    // Supabase emits INITIAL_SESSION after it has finished restoring storage.
+    // Keep the route guarded until that event (or a later auth event) arrives.
     const timer = setTimeout(() => {
       if (isMounted) {
         setAuthError('Không thể khôi phục phiên đăng nhập. Vui lòng kiểm tra kết nối và thử lại.');
@@ -45,13 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }, 15000);
 
-    let authChanged = false;
-
-    // 1. Lắng nghe thay đổi trạng thái xác thực
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
+      (_event, newSession) => {
         if (!isMounted) return;
-        if (event !== 'INITIAL_SESSION') authChanged = true;
         setSession(newSession);
         setUser(newSession ? newSession.user : null);
         setAuthError(null);
@@ -59,31 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(timer);
       }
     );
-
-    // 2. Phục hồi phiên đăng nhập từ localStorage khi reload trang
-    supabase.auth.getSession()
-      .then(({ data: { session: currentSession }, error }) => {
-        if (!isMounted) return;
-        if (authChanged) return;
-        if (error) {
-          setAuthError('Không thể khôi phục phiên đăng nhập. Vui lòng thử lại.');
-          console.warn('[Auth] getSession error:', error.message);
-        } else {
-          setSession(currentSession);
-          setUser(currentSession?.user ?? null);
-          setAuthError(null);
-        }
-        setLoading(false);
-        clearTimeout(timer);
-      })
-      .catch((err) => {
-        console.warn('[Auth] getSession exception:', err);
-        if (isMounted && !authChanged) {
-          setAuthError('Không thể khôi phục phiên đăng nhập. Vui lòng thử lại.');
-          setLoading(false);
-        }
-        clearTimeout(timer);
-      });
 
     return () => {
       isMounted = false;

@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function AuthRecovery({ message }: { message: string }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-900 p-6 text-center text-white">
@@ -9,6 +11,9 @@ export default function AuthRecovery({ message }: { message: string }) {
       >
         Thử lại
       </button>
+      <Link to="/auth" className="text-sm font-semibold text-emerald-300 underline">
+        Đăng nhập lại
+      </Link>
     </div>
   );
 }
